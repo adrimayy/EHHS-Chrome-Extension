@@ -17,7 +17,9 @@ const LINK_LIBRARY = [
     L('Schedule', '/html/clockPage.html', 'clock.png', 'black', 'Today’s bell schedule and how long is left in the period.', ['School']),
     L('SchoolTool', 'https://esb.schooltool.com/eh', 'schoolTool.png', 'color', 'Grades, attendance and report cards (EHHS student portal).', ['School']),
     L('EHHS', 'https://www.easthamptonschools.org/highschool', 'bonac.png', 'color', 'The high school’s site: calendar, bell schedules, forms and announcements.', ['School']),
-    L('Guidance', 'https://www.easthamptonschools.org/guidance', 'guidance.png', 'black', 'Your school counselor: schedule changes, college planning, or just someone to talk to. Stop by the office or call 631-329-4135.', ['School', 'College & Career', 'Health & Support']),
+    L('Guidance', 'https://www.easthamptonschools.org/guidance', 'guidance.png', 'black', 'EHHS counselors Marsilio, Pierro, Quinteros, Ritz, Sokolowski and Vasquez: schedule changes, college planning, or just someone to talk to. Stop by or call 631-329-4135.', ['School', 'College & Career', 'Health & Support']),
+    L('Course Change', 'https://docs.google.com/forms/d/1XtjnYJg8a7otf25TCCJ7n6NIo2QldNrHHTNEY0Ewiu4/viewform', 'courseChange.png', 'black', 'Guidance’s form for a wrong, missing or dropped class on your schedule.', ['School']),
+    L('Transcript Request', 'https://docs.google.com/forms/d/e/1FAIpQLSe0dmWVAGhasDYi_oyjWCoOrv3HS-ALXlPHQrc8UQDTXUio1g/viewform', 'transcript.png', 'black', 'Request your EHHS transcript for jobs, programs or scholarships (college transcripts go through Naviance). Sign in with your school account first.', ['School', 'College & Career']),
     L('Handbook', 'https://drive.google.com/file/d/1SY83s9NI7QGxY8iMDxuc1fQuEzYoHMdG/view', 'handbook.png', 'black', 'The 2026–27 EHHS Student Handbook: rules, attendance, phones, grading. A Spanish edition is on the EHHS page.', ['School']),
     L('Lunch Menu', 'https://www.fdmealplanner.com/', 'lunch.png', 'color', 'This week’s breakfast and lunch menus. Pay for meals with My School Bucks (link on the EHHS page).', ['School']),
     L('Final Forms', 'https://easthampton-ny.finalforms.com/', 'finalforms.png', 'color', 'Required sign-up for school sports: forms, physicals and consent. Athletic office: 631-329-4143.', ['School']),
@@ -25,7 +27,7 @@ const LINK_LIBRARY = [
     L('Biliteracy Seal', 'https://www.easthamptonschools.org/nysbiliteracy', 'biliteracy.png', 'black', 'Earn a diploma seal for being fluent in English and another language, including the one you speak at home.', ['School', 'Languages', 'College & Career']),
     L('Permit Practice', 'https://dmv.ny.gov/new-york-state-drivers-manual-practice-tests', 'dmv.png', 'color', 'Official NYS practice tests for the learner permit. Driver’s Ed sign-up and permit-test requests are on the EHHS page.', ['School']),
     L('Tech Help', 'https://easthamptonufsd.schoolinsites.com/remotehelpdesk', 'support.png', 'black', 'Report a broken Chromebook or account problem to district IT.', ['School']),
-    L('Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', 'programOfStudies.png', 'black', 'Every EHHS course for 2026–27, with prerequisites. Use it when picking classes.', ['School', 'College & Career']),
+    L('Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', 'programOfStudies.png', 'black', 'Every EHHS course for 2026–27, with prerequisites. Use it when picking classes. The Spanish edition is on the Guidance page.', ['School', 'College & Career']),
     L('Edgenuity', 'https://auth.edgenuity.com/Login/Login', 'edgenuity.png', 'color', 'Online courses and credit recovery assigned through EHHS.', ['School']),
     L('BOCES Programs', 'https://www.academyli.org/', 'boces.png', 'color', 'Eastern Suffolk BOCES career and technical programs you can take alongside EHHS.', ['School', 'College & Career']),
     L('BBS: The Current', 'https://www.youtube.com/@bbsthecurrent', 'bbs.png', 'color', 'EHHS’s student-run news broadcast.', ['School']),
@@ -79,7 +81,10 @@ const LINK_LIBRARY = [
     L('Common App', 'https://apply.commonapp.org/dashboard', 'commonApp.png', 'color', 'Apply to 1,000+ colleges with one application.', ['College & Career']),
     L('BigFuture', 'https://bigfuture.collegeboard.org/', 'bigfuture.png', 'color', 'Free college search, scholarship search and career quizzes.', ['College & Career']),
     L('College Scorecard', 'https://collegescorecard.ed.gov/', 'scorecard.png', 'color', 'US government data on any college: real cost after aid, graduation rates and graduates’ earnings.', ['College & Career']),
+    L('Senior Forms', 'https://drive.google.com/file/d/1l_sidhiUY5l5mImLIdnsrSm6rP1GS0JP/view', 'seniorForms.png', 'black', 'The 2026–27 senior meeting packet. Brag sheets and the teacher recommendation request are on the Guidance page.', ['College & Career', 'School']),
+    L('Scholarships', 'https://drive.google.com/drive/folders/1xqH-9kCW75CZ0MbwRHPDU_pZhQslTLEk', 'scholarships.png', 'black', 'Local East Hampton scholarships for seniors, posted by EHHS Guidance.', ['College & Career', 'School']),
     L('FAFSA', 'https://studentaid.gov/h/apply-for-aid/fafsa', 'fafsa.png', 'color', 'The federal form for grants, work-study and loans. File it senior year.', ['College & Career']),
+    L('NYS Dream Act', 'https://www.hesc.ny.gov/dream/', 'dreamAct.png', 'black', 'State aid (TAP, scholarships) for New York students who can’t file the FAFSA, including undocumented students. Apply here instead.', ['College & Career']),
     L('NYS Aid (TAP)', 'https://www.hesc.ny.gov/pay-for-college/apply-for-financial-aid/nys-tap.html', 'nysAid.png', 'black', 'New York’s TAP grants and Excelsior Scholarship for in-state colleges.', ['College & Career']),
     L('SUNY', 'https://www.suny.edu/', 'university.png', 'black', 'New York’s state university system: 64 campuses, one application.', ['College & Career']),
     L('CUNY', 'https://www.cuny.edu/', 'cuny.png', 'color', 'City University of New York: 25 campuses in NYC.', ['College & Career']),
@@ -189,7 +194,7 @@ function infoOf(link) {
 
 // ---------- Updating lists saved by older versions ----------
 // Old URL → new URL (the link takes the new name/icon), or null to drop it everywhere.
-const LINKS_VERSION = 7;
+const LINKS_VERSION = 8;
 const LINK_MIGRATIONS = {
   'http://mail.ehschools.org/': 'https://mail.google.com/',
   'https://easthamptonst.esboces.org/schooltoolweb/': 'https://esb.schooltool.com/eh',
