@@ -14,3 +14,7 @@ sora, spanishdict, trevor (The Trevor Project), wayground, writingLab (Purdue).
 Links with no usable logo (apRegistration, careeronestop, nysAid, programOfStudies,
 university/SUNY) use [Material Symbols](https://github.com/google/material-design-icons)
 (Rounded, filled, weight 700) by Google, Apache License 2.0, as 512×512 PNGs.
+
+## Added in links v7 (school + local support)
+- Real logos (site icons via Google's favicon service): ola, fsl, retreat, response, foodpantry, lunch (FD MealPlanner), finalforms, dmv (NYS).
+- Material Symbols Rounded (Apache 2.0) glyphs: handbook (assignment), communityService (volunteer_activism), healthOffice (medical_services), biliteracy (workspace_premium), hopeline (phone_in_talk).

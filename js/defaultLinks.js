@@ -17,7 +17,13 @@ const LINK_LIBRARY = [
     L('Schedule', '/html/clockPage.html', 'clock.png', 'black', 'Today’s bell schedule and how long is left in the period.', ['School']),
     L('SchoolTool', 'https://esb.schooltool.com/eh', 'schoolTool.png', 'color', 'Grades, attendance and report cards (EHHS student portal).', ['School']),
     L('EHHS', 'https://www.easthamptonschools.org/highschool', 'bonac.png', 'color', 'The high school’s site: calendar, bell schedules, forms and announcements.', ['School']),
-    L('Guidance', 'https://www.easthamptonschools.org/guidance', 'guidance.png', 'black', 'Counselors, course planning, college and financial-aid guides from EHHS.', ['School', 'College & Career', 'Health & Support']),
+    L('Guidance', 'https://www.easthamptonschools.org/guidance', 'guidance.png', 'black', 'Your school counselor: schedule changes, college planning, or just someone to talk to. Stop by the office or call 631-329-4135.', ['School', 'College & Career', 'Health & Support']),
+    L('Handbook', 'https://drive.google.com/file/d/1SY83s9NI7QGxY8iMDxuc1fQuEzYoHMdG/view', 'handbook.png', 'black', 'The 2026–27 EHHS Student Handbook: rules, attendance, phones, grading. A Spanish edition is on the EHHS page.', ['School']),
+    L('Lunch Menu', 'https://www.fdmealplanner.com/', 'lunch.png', 'color', 'This week’s breakfast and lunch menus. Pay for meals with My School Bucks (link on the EHHS page).', ['School']),
+    L('Final Forms', 'https://easthampton-ny.finalforms.com/', 'finalforms.png', 'color', 'Required sign-up for school sports: forms, physicals and consent. Athletic office: 631-329-4143.', ['School']),
+    L('Service Hours', 'https://drive.google.com/file/d/1-UKXAUMxipXV8O26yaHUDQdDM5cyki24/view', 'communityService.png', 'black', 'The form for logging your volunteer hours.', ['School', 'College & Career']),
+    L('Biliteracy Seal', 'https://www.easthamptonschools.org/nysbiliteracy', 'biliteracy.png', 'black', 'Earn a diploma seal for being fluent in English and another language, including the one you speak at home.', ['School', 'Languages', 'College & Career']),
+    L('Permit Practice', 'https://dmv.ny.gov/new-york-state-drivers-manual-practice-tests', 'dmv.png', 'color', 'Official NYS practice tests for the learner permit. Driver’s Ed sign-up and permit-test requests are on the EHHS page.', ['School']),
     L('Tech Help', 'https://easthamptonufsd.schoolinsites.com/remotehelpdesk', 'support.png', 'black', 'Report a broken Chromebook or account problem to district IT.', ['School']),
     L('Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', 'programOfStudies.png', 'black', 'Every EHHS course for 2026–27, with prerequisites. Use it when picking classes.', ['School', 'College & Career']),
     L('Edgenuity', 'https://auth.edgenuity.com/Login/Login', 'edgenuity.png', 'color', 'Online courses and credit recovery assigned through EHHS.', ['School']),
@@ -135,8 +141,15 @@ const LINK_LIBRARY = [
     L('Seterra', 'https://www.seterra.com/', 'seterra.png', 'color', 'Map quiz games for geography.', ['History & Gov'])
   ] },
   { category: 'Health & Support', links: [
+    L('Health Office', 'https://www.easthamptonschools.org/healthservices', 'healthOffice.png', 'black', 'The EHHS nurse: feeling sick, medication, physicals, concussion care. 631-329-4134.', ['School', 'Health & Support']),
+    L('Youth Connect', 'https://www.olaofeasternlongisland.org/', 'ola.png', 'color', 'Free, anonymous counselors from the East End for teens. Call or text 631-810-9010, 9am–11pm daily, in English or Spanish.', ['Health & Support', 'Languages']),
+    L('FSL Counseling', 'https://www.fsl-li.org/locations/', 'fsl.png', 'color', 'Counseling for teens and families in East Hampton (316 Accabonac Rd). Call 631-324-3344 for an appointment; Spanish spoken.', ['Health & Support']),
+    L('Response Hotline', 'https://www.responsecrisiscenter.org/', 'response.png', 'color', 'Long Island crisis line: 631-751-7500. Conexión, its Spanish line: 631-751-7423.', ['Health & Support']),
     L('988 Lifeline', 'https://988lifeline.org/', 'lifeline988.png', 'color', 'Free, confidential support 24/7. Call or text 988 if you or a friend is struggling.', ['Health & Support']),
-    L('Trevor Project', 'https://www.thetrevorproject.org/', 'trevor.png', 'color', '24/7 crisis support and community for LGBTQ+ young people.', ['Health & Support'])
+    L('Trevor Project', 'https://www.thetrevorproject.org/', 'trevor.png', 'color', '24/7 crisis support and community for LGBTQ+ young people.', ['Health & Support']),
+    L('The Retreat', 'https://allagainstabuse.org/', 'retreat.png', 'color', 'East Hampton’s help for dating violence, abuse or bullying: counseling, advocacy and a 24-hour hotline, 631-329-2200.', ['Health & Support']),
+    L('HOPEline', 'https://oasas.ny.gov/HOPELine', 'hopeline.png', 'black', 'New York’s 24/7 line for drug, alcohol, vaping or gambling worries, yours or a friend’s. Call 1-877-846-7369 or text 467369.', ['Health & Support']),
+    L('EH Food Pantry', 'https://www.easthamptonfoodpantry.org/', 'foodpantry.png', 'color', 'Free groceries for East Hampton families (159 Pantigo Rd, plus a pantry at the high school). 631-324-2300.', ['Health & Support'])
   ] }
 ];
 
@@ -176,7 +189,7 @@ function infoOf(link) {
 
 // ---------- Updating lists saved by older versions ----------
 // Old URL → new URL (the link takes the new name/icon), or null to drop it everywhere.
-const LINKS_VERSION = 6;
+const LINKS_VERSION = 7;
 const LINK_MIGRATIONS = {
   'http://mail.ehschools.org/': 'https://mail.google.com/',
   'https://easthamptonst.esboces.org/schooltoolweb/': 'https://esb.schooltool.com/eh',
