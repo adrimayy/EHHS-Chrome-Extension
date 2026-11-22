@@ -72,8 +72,9 @@
                 <h2 class="panelTitle">App Library <span id="libraryCount" class="count"></span></h2>
                 <button id="newLinkButton" class="primaryButton">+ New link</button>
             </div>
-            <input type="search" id="librarySearch" class="searchBox" placeholder="Search links" autocomplete="off">
-            <p class="hint">Tap a link to put it on your home screen.</p>
+            <input type="search" id="librarySearch" class="searchBox" placeholder="Search by name, subject or what it does" autocomplete="off">
+            <div id="subjectChips" class="chips" aria-label="Filter by subject"></div>
+            <p class="hint">Tap to add. Hover to see what it's for; <b>↗</b> visits the site first.</p>
             <div id="libraryGrid" class="libraryGrid"></div>
         </section>
     </main>
