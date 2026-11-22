@@ -1,524 +1,364 @@
-(async function() {
-  "use strict";
+// Editing page. The preview is the real popup (mainPage.html?edit=1) so it always
+// matches; this page handles settings, the App Library and the link editor.
+(function () {
+  'use strict';
 
-  let addedLinks = [
-    ["Drive", "https://drive.google.com/drive/u/0/", "/images/drive.png","color"],
-    ["Gmail", "http://mail.ehschools.org/", "/images/gmail.png","color"],
-    ["Classroom", "https://classroom.google.com/", "/images/classroom.png","color"],
+  const ICON_SIZE = 128; // uploaded images are resized to this (px) and stored in the extension
+  const $ = (id) => document.getElementById(id);
+  const storageGet = (area, keys) => new Promise((r) => chrome.storage[area].get(keys, r));
 
-    ["Schedule", "/html/clockPage.html", "/images/clock.png","black"],
-    ["SchoolTool", "https://easthamptonst.esboces.org/schooltoolweb/", "/images/schoolTool.png","color"],
-    ["Naviance", "https://student.naviance.com/main", "/images/naviance.png","black"],    
-    ["EHHS", "https://www.easthamptonschools.org/highschool", "/images/bonac.png","color"],
-    ["Guidance","https://www.easthamptonschools.org/guidance", "/images/guidance.png","black"],
-    ["Virtual Bulletin", "https://docs.google.com/presentation/d/1T-idGOxDysnA_qrA0ilTapPdZNXiYt-09Ew1kL1AUbk/preview?slide=id.gb047d9a6b6_0_28", "/images/announcement.png","black"],
-    
-    ["EH Tech Support", "https://ehschools.mojohelpdesk.com/", "/images/support.png","black"],
-    ["AP Classroom", "https://apstudents.collegeboard.org/", "/images/collegeBoard.png","black"],
-    ["Delta Math", "https://www.deltamath.com/app/student", "/images/deltaMath.png","black"],
+  const defaultKeys = new Set(
+    [...DEFAULT_ADDED_LINKS, ...DEFAULT_REMOVED_LINKS].map((l) => l[0] + '|' + l[1])
+  );
+  const isCustom = (link) => link[4] === 'custom' || String(link[2]).startsWith('data:') || !defaultKeys.has(link[0] + '|' + link[1]);
 
-  ];
-
-let removedLinks = [
-    ["EH Library", "http://easthamptonlibrary.org/teens/", "/images/book.png","black"],
-    ["BBS: The Current", "https://www.youtube.com/@bbsthecurrent","/images/bbs.png","color"],
-    ["Bonac Beachcomber", "https://bonacbeachcomber.com/", "/images/newspaper.png","black"],
-    ["LTV EH", "https://www.youtube.com/@LTVEastHampton", "/images/ltv.png","color"],
-    ["NoodleTools", "https://my.noodletools.com/web2.0/projects.html", "/images/noodleTools.png","color"],
-    ["EH Databases", "https://sites.google.com/ehschools.org/ehhslibrary/databases?pli=1", "/images/database.png","black"],
-    ["JSTOR", "https://www.jstor.org/", "/images/jstor.png","color"],
-
-    ["YouTube", "https://www.youtube.com/", "/images/youtube.png","color"],
-    ["Translate", "https://translate.google.com/", "/images/googleTranslate.png","color"],
-    ["Docs", "https://docs.google.com/document/u/0/", "/images/docs.png","color"],
-    ["Slides", "https://docs.google.com/presentation/u/0/", "/images/slides.png","color"],
-    ["Sheets", "https://docs.google.com/spreadsheets/u/0/", "/images/sheets.png","color"],
-    ["Keep", "https://keep.google.com/u/0/", "/images/keep.png","color"],
-    ["Calendar", "https://calendar.google.com/calendar/u/0/r", "/images/calendar.png","color"],
-    
-    ["NY Times", "https://www.nytimes.com/", "/images/nyTimes.png","black"],
-    ["Weather", "https://weather.com/en-BZ/weather/tenday/l/11937:4:US", "/images/weather.png","black"],
-    
-    ["Kami", "https://web.kamihq.com/web/viewer.html", "/images/kami.png","color"],
-    ["EdPuzzle", "https://edpuzzle.com/", "/images/edpuzzle.png","color"],
-    ["Castle Learning", "https://cl.castlelearning.com/Review/CLO/Account/LogOn", "/images/castleLearning.png","color"],
-    ["Khan Academy", "https://www.khanacademy.org/", "/images/khanAcademy.png","color"],
-    ["Duolingo", "https://www.duolingo.com/", "/images/duolingo.png","color"],
-    ["Rosetta Stone", "https://www.rosettastone.com/", "/images/rosettaStone.png","color"],
-    ["Oddessyware", "https://ehufsd.owschools.com/owsoo/login/auth", "/images/oddessyware.png","color"],
-    ["Word Reference", "https://www.wordreference.com/", "/images/wordReference.png","color"],
-    ["Verbix", "https://www.verbix.com/", "/images/verbix.png","color"],
-    ["Remind", "https://www.remind.com/", "/images/remind.png","color"],
-    ["AP Exam Dates","https://apcentral.collegeboard.org/exam-administration-ordering-scores/exam-dates", "/images/schedule.png","black"],
-    ["AP Study Guides", "https://knowt.io/", "/images/knowt.png","color"],
-    ["AP Study Guides", "https://library.fiveable.me/", "/images/fiveable.png","color"],
-    ["AP Score Calculator", "https://www.albert.io/blog/ap-score-calculators/","/images/albert.png","color"],
-
-    ["Common App", "https://apply.commonapp.org/dashboard", "/images/commonApp.png","color"],
-    ["EdX", "https://home.edx.org/", "/images/edX.png","black"],
-    ["Udemy", "https://www.udemy.com/", "/images/udemy.png","black"],
-    ["Typing Club", "https://www.typingclub.com/sportal/", "/images/typingClub.png","color"],
-
-    ["Sight Reading", "https://www.sightreadingfactory.com/sight-reading", "/images/sightReading.png","black"],
-    ["Spotify", "https://open.spotify.com/", "/images/spotify.png","color"],
-    
-    ["Pixlr", "https://pixlr.com/", "/images/pixlr.png","color"],
-    ["Img BG Remover", "https://www.remove.bg/", "/images/removeBG.png","black"],
-    
-    ["Symbolab", "https://www.symbolab.com/", "/images/symbolab.png","color"],
-    ["WolframAlpha", "https://www.wolframalpha.com/", "/images/wolframAlpha.png","color"],
-    ["Desmos", "https://www.desmos.com/calculator", "/images/desmos.png","color"],
-
-    ["GitHub", "https://github.com/", "/images/github.png","black"],
-    ["Code HS", "https://codehs.com/sections/3059537", "/images/codeHS.png","color"],
-    ["Code.org", "https://studio.code.org/home", "/images/code.png","black"],
-    ["p5.js", "https://editor.p5js.org/", "/images/p5.png","color"],
-    ["W3schools", "https://www.w3schools.com/", "/images/w3schools.png","color"],
-    ["Tinkercad", "https://www.tinkercad.com/dashboard","/images/tinkercad.png","color"],
-    ["Astromech", "http://astromech.net/", "/images/astromech.png","color"],
-
-    ["Quizlet", "https://quizlet.com/latest", "/images/quizlet.png","color"],
-    ["Kahoot", "https://kahoot.it/", "/images/kahoot.png","color"],
-    ["Blooket", "https://play.blooket.com/play", "/images/blooket.png","color"],
-    ["Gimkit", "https://www.gimkit.com/join", "/images/gimkit.png","color"],
-    ["Quizizz", "https://quizizz.com/join", "/images/quizizz.png","color"],
-    ["Grammarly", "https://www.grammarly.com/", "/images/grammarly.png","color"],
-    ["Wordle","https://www.nytimes.com/games/wordle/index.html", "/images/wordle.png","color"],
-    ["Seterra", "https://www.seterra.com/", "/images/seterra.png","color"],
-
-    ["SparkNotes", "https://www.sparknotes.com/", "/images/sparknotes.png","color"],
-    ["Shmoop", "https://www.shmoop.com/", "/images/shmoop.png","color"],
-    ["Brainly", "https://brainly.com/", "/images/brainly.png","black"],
-    ["Course Hero", "https://www.coursehero.com/", "/images/courseHero.png","color"],
-
-    ["CrashCourse", "https://www.youtube.com/@crashcourse", "/images/crashCourse.png","color"],
-    ["Heimler's History", "https://www.youtube.com/@heimlershistory", "/images/heilmer.png","color"],
-    ["Organic Chemistry Tutor", "https://www.youtube.com/@theorganicchemistrytutor", "/images/organicChemistryTutor.png","color"],
-    ["Bozeman Science", "https://www.youtube.com/@Bozemanscience1", "/images/bozeman.png","color"],
-    ["Flipping Physics", "https://www.youtube.com/@flippingphysics", "/images/flippingPhysics.png","black"],
-    ["Coding Train", "https://www.youtube.com/@thecodingtrain", "/images/codingTrain.png","color"],
-    ["Brian McLogan", "https://www.youtube.com/@brianmclogan", "/images/brianMclogan.png","color"],
-
-    ];
-
-const checkbox = document.getElementById("addToTopCheckbox");
-let isChecked = false; 
-let hasCheckedAttribute = checkbox.hasAttribute("checked");
-checkbox.checked = isChecked;
-
-chrome.storage.sync.get("isChecked", ({ isChecked: storedIsChecked }) => {
-  if (storedIsChecked !== undefined) {
-    isChecked = storedIsChecked;
-    hasCheckedAttribute = true;
-    checkbox.checked = isChecked;
-  }
-});
-
-checkbox.addEventListener("change", function() {
-  isChecked = checkbox.checked;
-  hasCheckedAttribute = checkbox.hasAttribute("checked");
-  if (isChecked) {
-    checkbox.setAttribute("checked", "");
-  } else {
-    checkbox.removeAttribute("checked");
-  }
-  updateDarkModeClass();
-});
-
-if (!isChecked) {
-  checkbox.removeAttribute("checked");
-}
-
-var slider = document.getElementById("myRange");
-var output = document.getElementById("sliderValue");
-output.innerHTML = slider.value;
-
-slider.oninput = function() {
-  output.innerHTML = this.value;
-  chrome.storage.sync.set({ sliderValue: this.value });
-  updateDarkModeClass();
-}
-
-
-chrome.storage.sync.get("sliderValue", function(data) {
-  if (data.sliderValue) {
-    slider.value = data.sliderValue;
-    output.innerHTML = data.sliderValue;
-  }
-});
-  const table = document.getElementById("addedLinksTable");
-  const tbody = table.querySelector("tbody");
-
-  const removedLinksTable = document.getElementById("removedLinksTable");
-  const removedLinksTbody = removedLinksTable.querySelector("tbody");
-
-  async function loadSortableLibrary() {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = '/js/Sortable.min.js';
-      script.onload = () => {
-        resolve();
-      };
-      document.body.appendChild(script);
-    });
-  }
-
-  async function init() {
-    await loadSortableLibrary();
-
-    chrome.storage.local.get(["addedLinks", "removedLinks"], ({ addedLinks: storedAddedLinks, removedLinks: storedRemovedLinks }) => {
-      if (storedAddedLinks) {
-        addedLinks = JSON.parse(storedAddedLinks);
-      }
-      if (storedRemovedLinks) {
-        removedLinks = JSON.parse(storedRemovedLinks);
-      }
-
-      loadTableData();
-      initializeSortable();
-    });
-  }
-
-  function initializeSortable() {
-    new Sortable(tbody, {
-      group: "shared",
-      animation: 150,
-      onEnd: handleSortEnd,
-    });
-
-    new Sortable(removedLinksTbody, {
-      group: "shared",
-      animation: 150,
-      onEnd: handleSortEnd,
-    });
-  }
-
-  function handleSortEnd(event) {
-    const { from, to, oldIndex, newIndex } = event;
-    let fromLinks, toLinks;
-  
-    if (from === tbody) {
-      fromLinks = addedLinks;
-    } else {
-      fromLinks = removedLinks;
-    }
-  
-    if (to === tbody) {
-      toLinks = addedLinks;
-    } else {
-      toLinks = removedLinks;
-    }
-  
-    const movedLink = fromLinks[oldIndex];
-    fromLinks.splice(oldIndex, 1);
-    toLinks.splice(newIndex, 0, movedLink);
-  
-    const tr = event.item;
-    const button = tr.querySelector("button");
-  
-    if (to === tbody) {
-      button.classList.add("removeLink");
-      button.removeEventListener("click", () => {
-        moveBack(tr);
-      });
-      button.addEventListener("click", () => {
-        moveToRemoved(tr);
-      });
-    } else {
-      button.classList.add("addLink");
-      button.removeEventListener("click", () => {
-        moveToRemoved(tr);
-      });
-      button.addEventListener("click", () => {
-        moveBack(tr);
-      });
-    }
-  
-    chrome.storage.local.set({
-      addedLinks: JSON.stringify(addedLinks),
-      removedLinks: JSON.stringify(removedLinks),
-    });
-    updateDarkModeClass(); 
-    loadTableData();
-  }
-  
-  function moveToRemovedWrapper(event) {
-    moveToRemoved(event);
-    updateDarkModeClass();
-  }
-  
-  function moveBackWrapper(event) {
-    moveBack(event);
-    updateDarkModeClass();
-  }
-  
-  function moveToRemoved(event) {
-    const target = event.target.tagName === 'BUTTON' ? event.target : event.target.parentElement;
-    const tr = target.parentElement;
-      
-    target.classList.add("addLink");
-    target.removeEventListener("click", moveToRemovedWrapper);
-    target.addEventListener("click", moveBackWrapper);
-      
-    moveRow(tbody, removedLinksTbody, tr, addedLinks, removedLinks);
-  
-    updateDarkModeClass();
-  }
-  
-  
-  function moveBack(event) {
-    const target = event.target.tagName === 'BUTTON' ? event.target : event.target.parentElement;
-    const tr = target.parentElement;
-    
-    target.classList.add("removeLink");
-    target.removeEventListener("click", moveBackWrapper);
-    target.addEventListener("click", moveToRemovedWrapper);
-    
-    moveRow(removedLinksTbody, tbody, tr, removedLinks, addedLinks);
-    updateDarkModeClass();
-
-  }
-  
-  function updateDarkModeClass() {
-    const isDarkMode = document.documentElement.classList.contains("dark-mode");
-    const darkModeClass = 'dark-mode';
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-      const lightDarkMode = img.getAttribute('alt');
-      if (isDarkMode && lightDarkMode === "black") {
-        img.classList.add(darkModeClass);
-      } else {
-        img.classList.remove(darkModeClass);
-      }
-    });
-  }
-  
-function populateTable(tbody, links, addedTable, isDarkMode) {
-  links.forEach(([linkName, url, image, lightDarkMode]) => {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    const div = document.createElement("div");
-    const img = document.createElement("img");
-    const a = document.createElement("a");
-    const button = document.createElement("button");
-    button.setAttribute("data-ignore", "true");
-
-    div.textContent = linkName;
-    div.classList.add("linkName");
-    img.src = image;
-    img.alt = lightDarkMode;
-    img.width = 50;
-    img.height = 50;
-    img.style.marginRight = "10px";
-   
-    img.setAttribute('data-url', url); 
-    a.href = url; 
-    a.target = "_blank"; 
-    a.appendChild(img);
-    a.style.textIndent = '0';
-    a.style.width = '50px';
-    a.style.height = '50px';
-
-
-    button.style.minWidth = "50px";
-    button.style.height = "50px";
-    button.style.marginRight = "10px";
-    button.style.lineHeight = "43px";
-
-    if (addedTable) {
-      button.classList.add("removeLink");
-      button.removeEventListener("click", moveBackWrapper);
-      button.addEventListener("click", moveToRemovedWrapper);
-    } else {
-      button.classList.add("addLink");
-      button.removeEventListener("click", moveToRemovedWrapper);
-      button.addEventListener("click", moveBackWrapper);
-    }
-
-    button.onclick = function (event) {
-      event.stopPropagation();
-      if (addedTable) {
-        moveToRemovedWrapper(event);
-      } else {
-        moveBackWrapper(event);
-      }
+  async function readLists() {
+    const { addedLinks, removedLinks } = await storageGet('local', ['addedLinks', 'removedLinks']);
+    return {
+      added: addedLinks ? JSON.parse(addedLinks) : DEFAULT_ADDED_LINKS.map((l) => l.slice()),
+      removed: removedLinks ? JSON.parse(removedLinks) : DEFAULT_REMOVED_LINKS.map((l) => l.slice())
     };
+  }
+  function writeLists(added, removed) {
+    return chrome.storage.local.set({ addedLinks: JSON.stringify(added), removedLinks: JSON.stringify(removed) });
+  }
+  const addToTop = () => $('addToTopCheckbox').checked;
 
-    td.appendChild(a); 
-    td.appendChild(div);
-    tr.appendChild(td);
-    tr.appendChild(button);
-    tbody.appendChild(tr);
+  // ---------------- Settings ----------------
+  const slider = $('myRange');
+  const sliderValue = $('sliderValue');
 
-    const darkModeClass = 'dark-mode';
-    if (isDarkMode && lightDarkMode === "black") {
-      img.classList.add(darkModeClass);
+  chrome.storage.sync.get(['sliderValue', 'isChecked'], (data) => {
+    if (data.sliderValue) slider.value = data.sliderValue;
+    sliderValue.textContent = slider.value;
+    $('addToTopCheckbox').checked = !!data.isChecked;
+  });
+  slider.addEventListener('input', () => {
+    sliderValue.textContent = slider.value;
+    chrome.storage.sync.set({ sliderValue: slider.value });
+  });
+  $('addToTopCheckbox').addEventListener('change', (e) => chrome.storage.sync.set({ isChecked: e.target.checked }));
+
+  // Period timer: dates are stored as MM-DD so they repeat every school year.
+  // Shown with this school year's year (Jul–Dec → fall year, Jan–Jun → spring year).
+  function toInputDate(md) {
+    const now = new Date();
+    const fallYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    const month = Number(md.split('-')[0]);
+    return `${month >= 7 ? fallYear : fallYear + 1}-${md}`;
+  }
+  getBadgeSettings().then((s) => {
+    $('badgeEnabled').checked = s.badgeEnabled;
+    $('schoolStart').value = toInputDate(s.schoolStart);
+    $('schoolEnd').value = toInputDate(s.schoolEnd);
+    updateBadgeNow();
+  });
+  $('badgeEnabled').addEventListener('change', (e) => chrome.storage.sync.set({ badgeEnabled: e.target.checked }));
+  $('schoolStart').addEventListener('change', (e) => e.target.value && chrome.storage.sync.set({ schoolStart: e.target.value.slice(5) }));
+  $('schoolEnd').addEventListener('change', (e) => e.target.value && chrome.storage.sync.set({ schoolEnd: e.target.value.slice(5) }));
+
+  async function updateBadgeNow() {
+    const badge = await refreshBadge();
+    const chip = $('badgeNow');
+    if (badge && badge.text) {
+      chip.textContent = badge.text;
+      chip.style.background = badge.color;
     } else {
-      img.classList.remove(darkModeClass);
+      chip.textContent = 'off';
+      chip.style.background = '#d6d0d2';
+    }
+  }
+  setInterval(updateBadgeNow, 15000);
+
+  $('resetButton').addEventListener('click', async () => {
+    const ok = confirm('Reset your home screen, App Library and settings? Custom links and uploaded images will be erased. This can’t be undone.');
+    if (!ok) return;
+    await chrome.storage.local.clear();
+    await chrome.storage.sync.set({ isChecked: false, sliderValue: 3, mode: 'light', ...BADGE_DEFAULTS });
+    location.reload();
+  });
+
+  // ---------------- Preview + jiggle mode ----------------
+  const frame = $('previewFrame');
+  const jiggleButton = $('jiggleButton');
+  let jiggling = false;
+
+  function setJiggle(on, tellFrame) {
+    jiggling = on;
+    jiggleButton.textContent = on ? 'Done' : 'Edit';
+    jiggleButton.classList.toggle('active', on);
+    $('previewHint').textContent = on
+      ? 'Drag to move. Tap − to send a link to the App Library. Tap an icon to edit it.'
+      : 'Exactly what the popup shows. Hold an icon or press Edit to move things around.';
+    if (tellFrame) frame.contentWindow.postMessage({ type: 'setJiggle', on }, location.origin);
+  }
+  jiggleButton.addEventListener('click', () => setJiggle(!jiggling, true));
+
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || e.source !== frame.contentWindow || !e.data) return;
+    const msg = e.data;
+    if (msg.type === 'size') {
+      frame.style.width = Math.max(120, msg.width) + 'px';
+      frame.style.height = Math.max(120, msg.height) + 'px';
+    } else if (msg.type === 'jiggle') {
+      setJiggle(msg.on, false);
+    } else if (msg.type === 'ready') {
+      // Start in edit mode: that's what this page is for.
+      setJiggle(true, true);
+    } else if (msg.type === 'editLink') {
+      openSheet({ mode: 'edit', index: msg.index, link: msg.link });
     }
   });
-}
-checkbox.addEventListener("change", function() {
-  isChecked = checkbox.checked;
-  hasCheckedAttribute = checkbox.hasAttribute("checked");
-  if (isChecked) {
-    checkbox.setAttribute("checked", "");
-  } else {
-    checkbox.removeAttribute("checked");
-  }
-  updateDarkModeClass();
-});
 
-async function moveRow(fromTable, toTable, tr, fromLinks, toLinks) {
-  const linkName = tr.querySelector("div").textContent;
-  const imgElement = tr.querySelector("img");
-  const url = imgElement.getAttribute('data-url');
-  const image = imgElement.getAttribute('src');
-  const lightDarkMode = imgElement.getAttribute('alt');
+  // ---------------- App Library ----------------
+  const libraryGrid = $('libraryGrid');
+  const search = $('librarySearch');
 
-  const index = fromLinks.findIndex(([name]) => name === linkName);
-  if (index === -1) {
-    console.error(`Link data not found in the list`);
-    return;
-  }
+  async function renderLibrary() {
+    const { removed } = await readLists();
+    const q = search.value.trim().toLowerCase();
+    $('libraryCount').textContent = removed.length ? `(${removed.length})` : '';
+    libraryGrid.textContent = '';
+    let shown = 0;
+    removed.forEach((link, index) => {
+      if (q && !link[0].toLowerCase().includes(q) && !link[1].toLowerCase().includes(q)) return;
+      shown++;
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'libraryTile' + (isCustom(link) ? ' custom' : '');
+      tile.title = `Add ${link[0]} to the home screen\n${link[1]}`;
 
-  const movedLink = [linkName, url, image, lightDarkMode]; 
-  fromLinks.splice(index, 1);
+      const img = document.createElement('img');
+      img.src = link[2];
+      img.alt = '';
+      const label = document.createElement('span');
+      label.className = 'tileLabel';
+      label.textContent = link[0];
+      const add = document.createElement('span');
+      add.className = 'addBadge';
+      add.textContent = '+';
+      tile.append(add, img, label);
 
-  const addToTopCheckbox = document.getElementById("addToTopCheckbox");
-  const addToTop = addToTopCheckbox.checked;
-
-  if (addToTop) {
-    toLinks.splice(0, 0, movedLink);
-    toTable.insertBefore(tr, toTable.firstChild);
-  } else {
-    toLinks.push(movedLink);
-    toTable.appendChild(tr);
-  }
-
-  const button = tr.querySelector("button");
-  button.onclick = null;
-
-  if (toTable === tbody) {
-    button.classList.add("removeLink");
-    button.addEventListener("click", moveToRemovedWrapper);
-  } else {
-    button.classList.add("addLink");
-    button.addEventListener("click", moveBackWrapper);
-  }
-
-  chrome.storage.local.set({
-    addedLinks: JSON.stringify(addedLinks),
-    removedLinks: JSON.stringify(removedLinks),
-  });
-
-  const isDarkMode = document.documentElement.classList.contains("dark-mode");
-  const darkModeClass = 'dark-mode';
-
-  if (isDarkMode && lightDarkMode === "black") {
-    tr.querySelector("img").classList.add(darkModeClass);
-  } else {
-    tr.querySelector("img").classList.remove(darkModeClass);
-  }
-
-  updateDarkModeClass();
-  loadTableData();
-}
-  
-  function loadTableData() {
-    tbody.innerHTML = "";
-    removedLinksTbody.innerHTML = "";
-  
-    const darkMode = document.documentElement.classList.contains("dark-mode");
-    populateTable(tbody, addedLinks, true, darkMode);
-    populateTable(removedLinksTbody, removedLinks, false, darkMode);
-  }
-  
-
-  await init();
-
-  const resetButton = document.getElementById("resetButton");
-  resetButton.addEventListener("click", function() {
-    const confirmed = confirm("Are you sure you want to reset the added and removed links? This action cannot be undone and will erase any custom links that were added.");
-    if(confirmed) {
-      checkbox.checked = false;
-      isChecked = false;
-      checkbox.removeAttribute("checked");
-      chrome.storage.sync.set({ isChecked: false });
-    
-      slider.value = 3;
-      output.innerHTML = 3;
-      chrome.storage.sync.set({ sliderValue: 3 });
-      chrome.storage.sync.set({ mode: "light" });
-      chrome.storage.local.clear();
-      location.reload();
-    }
-  });
-  
-  const addLinkForm = document.getElementById('add-link-form');
-
-  addLinkForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const linkName = document.getElementById("link-name").value;
-    const linkUrl = document.getElementById("link-url").value;
-    const linkImage = document.getElementById("link-image").value;
-    const linkColor = document.getElementById("link-color").value;
-  
-    const newLink = [linkName, linkUrl, linkImage, linkColor];
-    addedLinks.unshift(newLink);
-    
-    chrome.storage.local.set({
-      addedLinks: JSON.stringify(addedLinks)
+      if (isCustom(link)) {
+        const del = document.createElement('span');
+        del.className = 'deleteBadge';
+        del.textContent = '✕';
+        del.title = 'Delete this custom link';
+        del.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteFromLibrary(index, link);
+        });
+        tile.append(del);
+      }
+      tile.addEventListener('click', () => {
+        tile.classList.add('adding');
+        setTimeout(() => addFromLibrary(index, link), 160);
+      });
+      libraryGrid.appendChild(tile);
     });
-  
-    loadTableData();
-    addLinkForm.reset();
-  });
-  
+    if (!shown) {
+      const empty = document.createElement('div');
+      empty.className = 'emptyLibrary';
+      empty.textContent = q ? 'No matches.' : 'Everything is on your home screen.';
+      libraryGrid.appendChild(empty);
+    }
+  }
 
-  const expandButton = document.getElementById('expandButton');
-  const formContainer = document.getElementById('add-link-form-container');
-  
-  chrome.storage.sync.get('formVisible', (data) => {
-    if (data.formVisible) {
-      formContainer.classList.add('visible');
-      expandButton.innerText = "↑ Custom Link";
+  // Find the link again by value, in case the lists changed since rendering.
+  function locate(list, index, link) {
+    const key = JSON.stringify(link);
+    if (JSON.stringify(list[index]) === key) return index;
+    return list.findIndex((l) => JSON.stringify(l) === key);
+  }
+
+  async function addFromLibrary(index, link) {
+    const { added, removed } = await readLists();
+    const i = locate(removed, index, link);
+    if (i === -1) return renderLibrary();
+    removed.splice(i, 1);
+    if (addToTop()) added.unshift(link); else added.push(link);
+    await writeLists(added, removed);
+  }
+
+  async function deleteFromLibrary(index, link) {
+    if (!confirm(`Delete “${link[0]}” for good?`)) return;
+    const { added, removed } = await readLists();
+    const i = locate(removed, index, link);
+    if (i !== -1) removed.splice(i, 1);
+    await writeLists(added, removed);
+  }
+
+  search.addEventListener('input', renderLibrary);
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && (changes.removedLinks || changes.addedLinks)) renderLibrary();
+  });
+  renderLibrary();
+
+  // ---------------- New / edit link sheet ----------------
+  const sheet = $('linkSheet');
+  const form = $('add-link-form');
+  const nameInput = $('link-name');
+  const urlInput = $('link-url');
+  const fileInput = $('link-image-file');
+  const dropZone = $('dropZone');
+  let sheetState = null; // { mode: 'new' | 'edit', index, link, image }
+
+  function setImage(src) {
+    sheetState.image = src;
+    const preview = $('iconPreview');
+    const tileImg = $('tilePreviewImg');
+    if (src) {
+      preview.src = src; preview.hidden = false;
+      tileImg.src = src;
+      $('dropZoneText').innerHTML = 'Click or drop<br>to replace';
     } else {
-      formContainer.classList.remove('visible');
-      expandButton.innerText = "+ Custom Link";
+      preview.hidden = true; preview.removeAttribute('src');
+      tileImg.removeAttribute('src');
+      $('dropZoneText').innerHTML = 'Drop an image,<br>click to choose,<br>or paste';
     }
-  });
-  
-  expandButton.addEventListener('click', () => {
-    if(formContainer.classList.contains('visible')) {
-      formContainer.classList.remove('visible');
-      expandButton.innerText = "+ Custom Link";  
-      
-      chrome.storage.sync.set({formVisible: false});
+    showError('');
+  }
+  function showError(text) {
+    $('imageError').textContent = text;
+    $('imageError').hidden = !text;
+  }
+
+  function openSheet(state) {
+    sheetState = { ...state, image: null };
+    const editing = state.mode === 'edit';
+    $('sheetTitle').textContent = editing ? 'Edit link' : 'New link';
+    $('sheetSave').textContent = editing ? 'Save' : 'Add';
+    $('sheetRemove').hidden = !editing;
+    form.reset();
+    if (editing) {
+      nameInput.value = state.link[0];
+      urlInput.value = state.link[1];
+      form.querySelector(`input[name="link-color"][value="${state.link[3] === 'black' ? 'black' : 'color'}"]`).checked = true;
+      setImage(state.link[2]);
     } else {
-      formContainer.classList.add('visible');
-      expandButton.innerText = "↑ Custom Link";
-            chrome.storage.sync.set({formVisible: true});
+      setImage(null);
     }
+    $('tilePreviewName').textContent = nameInput.value || 'Name';
+    sheet.hidden = false;
+    setTimeout(() => (editing ? nameInput : dropZone).focus(), 50);
+  }
+  function closeSheet() {
+    sheet.hidden = true;
+    sheetState = null;
+  }
+
+  nameInput.addEventListener('input', () => ($('tilePreviewName').textContent = nameInput.value || 'Name'));
+  $('newLinkButton').addEventListener('click', () => openSheet({ mode: 'new' }));
+  $('sheetCancel').addEventListener('click', closeSheet);
+  sheet.addEventListener('mousedown', (e) => { if (e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+
+  // Read any image file, fit it into a square and keep it as a data URL in extension storage.
+  function fileToIcon(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) return reject(new Error('That file isn’t an image.'));
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth || ICON_SIZE, h = img.naturalHeight || ICON_SIZE;
+        const scale = Math.min(ICON_SIZE / w, ICON_SIZE / h, 1) || 1;
+        const dw = Math.max(1, Math.round(w * scale)), dh = Math.max(1, Math.round(h * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(dw, dh);
+        canvas.height = Math.max(dw, dh);
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Chrome can’t open that image. Try a PNG, JPG, SVG or WebP.'));
+      };
+      img.src = url;
+    });
+  }
+  async function takeFile(file) {
+    try {
+      setImage(await fileToIcon(file));
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener('change', () => fileInput.files[0] && takeFile(fileInput.files[0]));
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('over');
+    const file = [...e.dataTransfer.files].find((f) => f.type.startsWith('image/'));
+    if (file) takeFile(file); else showError('Drop an image file from your computer.');
   });
-  
-  var modal = document.getElementById("myModal");
-  var btn = document.getElementById("info-icon");
-  var span = document.getElementsByClassName("close")[0];
+  document.addEventListener('paste', (e) => {
+    if (sheet.hidden) return;
+    const item = [...e.clipboardData.items].find((i) => i.type.startsWith('image/'));
+    if (item) { e.preventDefault(); takeFile(item.getAsFile()); }
+  });
 
-  btn.onclick = function() {
-    modal.style.display = "flex";
-  }
-
-  span.onclick = function() {
-    modal.style.display = "none";
-  }
-
-  window.onclick = function(event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
+  // Accepts full links, bare domains (adds https://) and the extension's own pages (/html/...).
+  function normalizeUrl(raw) {
+    let value = raw.trim();
+    if (!value) return '';
+    if (value.startsWith('/')) return value;
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(value)) value = 'https://' + value;
+    try {
+      const u = new URL(value);
+      if (!['http:', 'https:'].includes(u.protocol) || (!u.hostname.includes('.') && u.hostname !== 'localhost')) return '';
+      return u.href;
+    } catch (e) {
+      return '';
     }
   }
 
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!sheetState) return;
+    if (!sheetState.image) {
+      showError('Add an image for the icon.');
+      return;
+    }
+    const url = normalizeUrl(urlInput.value);
+    if (!url) {
+      showError('That link doesn’t look right. Try something like https://www.desmos.com');
+      urlInput.focus();
+      return;
+    }
+    urlInput.value = url;
+    const color = form.querySelector('input[name="link-color"]:checked').value;
+    const { added, removed } = await readLists();
+
+    if (sheetState.mode === 'edit') {
+      const i = locate(added, sheetState.index, sheetState.link);
+      if (i === -1) { closeSheet(); return; }
+      const wasCustom = isCustom(sheetState.link);
+      const updated = [nameInput.value.trim(), url, sheetState.image, color];
+      if (wasCustom || sheetState.image.startsWith('data:')) updated.push('custom');
+      added[i] = updated;
+    } else {
+      added.unshift([nameInput.value.trim(), url, sheetState.image, color, 'custom']);
+    }
+    await writeLists(added, removed);
+    closeSheet();
+  });
+
+  $('sheetRemove').addEventListener('click', async () => {
+    if (!sheetState || sheetState.mode !== 'edit') return;
+    const { added, removed } = await readLists();
+    const i = locate(added, sheetState.index, sheetState.link);
+    if (i !== -1) {
+      const [link] = added.splice(i, 1);
+      if (addToTop()) removed.unshift(link); else removed.push(link);
+      await writeLists(added, removed);
+    }
+    closeSheet();
+  });
 })();

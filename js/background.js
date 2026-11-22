@@ -59,3 +59,7 @@ updateBadge();
         scheduleUpdate();
     }, delay);
 })();
+
+// Opening the popup also refreshes the toolbar badge, in case Chrome put the
+// background worker to sleep longer than expected.
+if (typeof refreshBadge === 'function') refreshBadge();
