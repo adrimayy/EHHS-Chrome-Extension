@@ -1,8 +1,8 @@
 // Every built-in link, grouped the way the App Library shows them.
 // Link format: [name, url, image, iconStyle ('color' | 'black'), flag ('custom' or '')]
 // Links checked November 2026; school links come from easthamptonschools.org.
-
-const G = '/images/generic/';
+// Icons added in v0.6.0 are Google Material Symbols (filled, Apache 2.0), exported
+// as 512px PNGs to match the original icons.
 
 const LINK_LIBRARY = [
   { category: 'EHHS', links: [
@@ -11,9 +11,9 @@ const LINK_LIBRARY = [
     ['EHHS', 'https://www.easthamptonschools.org/highschool', '/images/bonac.png', 'color'],
     ['Guidance', 'https://www.easthamptonschools.org/guidance', '/images/guidance.png', 'black'],
     ['Tech Help', 'https://easthamptonufsd.schoolinsites.com/remotehelpdesk', '/images/support.png', 'black'],
-    ['Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', G + 'catalogBook.svg', 'black'],
-    ['Edgenuity', 'https://auth.edgenuity.com/Login/Login', G + 'laptop.svg', 'black'],
-    ['BOCES Programs', 'https://www.academyli.org/', G + 'tools.svg', 'black'],
+    ['Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', '/images/programOfStudies.png', 'black'],
+    ['Edgenuity', 'https://auth.edgenuity.com/Login/Login', '/images/edgenuity.png', 'black'],
+    ['BOCES Programs', 'https://www.academyli.org/', '/images/boces.png', 'black'],
     ['BBS: The Current', 'https://www.youtube.com/@bbsthecurrent', '/images/bbs.png', 'color'],
     ['LTV EH', 'https://www.youtube.com/@LTVEastHampton', '/images/ltv.png', 'color']
   ] },
@@ -29,45 +29,45 @@ const LINK_LIBRARY = [
     ['Translate', 'https://translate.google.com/', '/images/googleTranslate.png', 'color']
   ] },
   { category: 'Library & Research', links: [
-    ['Sora eBooks', 'https://soraapp.com/welcome/login/370662/ils/ehufsdny/form/East%20Hampton%20UFSD', G + 'headphonesBook.svg', 'black'],
-    ['Library Catalog', 'https://search.follettsoftware.com/metasearch/ui/29877', G + 'catalog.svg', 'black'],
+    ['Sora eBooks', 'https://soraapp.com/welcome/login/370662/ils/ehufsdny/form/East%20Hampton%20UFSD', '/images/sora.png', 'black'],
+    ['Library Catalog', 'https://search.follettsoftware.com/metasearch/ui/29877', '/images/libraryCatalog.png', 'black'],
     ['Databases', 'https://auth.orc.scoolaid.net/bin/listdb?sysCode=xaaa&schoolId=773', '/images/database.png', 'black'],
     ['NewsBank', 'https://infoweb.newsbank.com/home', '/images/newspaper.png', 'black'],
     ['JSTOR', 'https://www.jstor.org/', '/images/jstor.png', 'color'],
     ['NoodleTools', 'https://my.noodletools.com/web2.0/projects.html', '/images/noodleTools.png', 'color'],
-    ['ZoteroBib', 'https://zbib.org/', G + 'quote.svg', 'black'],
-    ['Purdue OWL', 'https://owl.purdue.edu/', G + 'pen.svg', 'black'],
-    ['Gutenberg', 'https://www.gutenberg.org/', G + 'books.svg', 'black'],
+    ['ZoteroBib', 'https://zbib.org/', '/images/citation.png', 'black'],
+    ['Purdue OWL', 'https://owl.purdue.edu/', '/images/writingLab.png', 'black'],
+    ['Gutenberg', 'https://www.gutenberg.org/', '/images/gutenberg.png', 'black'],
     ['EH Library', 'https://easthamptonlibrary.org/teens/', '/images/book.png', 'black'],
     ['NY Times', 'https://www.nytimes.com/', '/images/nyTimes.png', 'black']
   ] },
   { category: 'Math & Science', links: [
     ['Delta Math', 'https://www.deltamath.com/app/student', '/images/deltaMath.png', 'black'],
     ['Desmos', 'https://www.desmos.com/calculator', '/images/desmos.png', 'color'],
-    ['GeoGebra', 'https://www.geogebra.org/calculator', G + 'graph.svg', 'black'],
+    ['GeoGebra', 'https://www.geogebra.org/calculator', '/images/geogebra.png', 'black'],
     ['Symbolab', 'https://www.symbolab.com/', '/images/symbolab.png', 'color'],
     ['WolframAlpha', 'https://www.wolframalpha.com/', '/images/wolframAlpha.png', 'color'],
-    ['PhET Sims', 'https://phet.colorado.edu/', G + 'atom.svg', 'black'],
+    ['PhET Sims', 'https://phet.colorado.edu/', '/images/phet.png', 'black'],
     ['Khan Academy', 'https://www.khanacademy.org/', '/images/khanAcademy.png', 'color']
   ] },
   { category: 'AP, Regents & SAT', links: [
     ['AP Classroom', 'https://myap.collegeboard.org/', '/images/collegeBoard.png', 'black'],
-    ['AP Registration', 'https://user.totalregistration.net/AP/331700', G + 'clipboard.svg', 'black'],
+    ['AP Registration', 'https://user.totalregistration.net/AP/331700', '/images/apRegistration.png', 'black'],
     ['AP Exam Dates', 'https://apcentral.collegeboard.org/exam-administration-ordering-scores/exam-dates', '/images/schedule.png', 'black'],
     ['AP Study Guides', 'https://library.fiveable.me/', '/images/fiveable.png', 'color'],
     ['Knowt', 'https://knowt.io/', '/images/knowt.png', 'color'],
     ['AP Score Calculator', 'https://www.albert.io/blog/ap-score-calculators/', '/images/albert.png', 'color'],
-    ['Past Regents', 'https://www.nysedregents.org/', G + 'exam.svg', 'black'],
-    ['SAT Practice', 'https://satsuite.collegeboard.org/sat/practice-preparation', G + 'bubbles.svg', 'black'],
+    ['Past Regents', 'https://www.nysedregents.org/', '/images/regents.png', 'black'],
+    ['SAT Practice', 'https://satsuite.collegeboard.org/sat/practice-preparation', '/images/satPractice.png', 'black'],
     ['Castle Learning', 'https://cl.castlelearning.com/Review/CLO/Account/LogOn', '/images/castleLearning.png', 'color']
   ] },
   { category: 'College & Career', links: [
     ['Naviance', 'https://student.naviance.com/ehhs', '/images/naviance.png', 'black'],
     ['Common App', 'https://apply.commonapp.org/dashboard', '/images/commonApp.png', 'color'],
-    ['FAFSA', 'https://studentaid.gov/h/apply-for-aid/fafsa', G + 'aid.svg', 'black'],
-    ['NYS Aid (TAP)', 'https://www.hesc.ny.gov/pay-for-college/apply-for-financial-aid/nys-tap.html', G + 'aid.svg', 'black'],
-    ['SUNY', 'https://www.suny.edu/', G + 'columns.svg', 'black'],
-    ['CUNY', 'https://www.cuny.edu/', G + 'columns.svg', 'black'],
+    ['FAFSA', 'https://studentaid.gov/h/apply-for-aid/fafsa', '/images/fafsa.png', 'black'],
+    ['NYS Aid (TAP)', 'https://www.hesc.ny.gov/pay-for-college/apply-for-financial-aid/nys-tap.html', '/images/nysAid.png', 'black'],
+    ['SUNY', 'https://www.suny.edu/', '/images/university.png', 'black'],
+    ['CUNY', 'https://www.cuny.edu/', '/images/university.png', 'black'],
     ['EdX', 'https://home.edx.org/', '/images/edX.png', 'black'],
     ['Udemy', 'https://www.udemy.com/', '/images/udemy.png', 'black']
   ] },
@@ -95,7 +95,7 @@ const LINK_LIBRARY = [
     ['Code.org', 'https://studio.code.org/home', '/images/code.png', 'black'],
     ['p5.js', 'https://editor.p5js.org/', '/images/p5.png', 'color'],
     ['W3schools', 'https://www.w3schools.com/', '/images/w3schools.png', 'color'],
-    ['Scratch', 'https://scratch.mit.edu/', G + 'blocks.svg', 'black'],
+    ['Scratch', 'https://scratch.mit.edu/', '/images/scratch.png', 'black'],
     ['Tinkercad', 'https://www.tinkercad.com/dashboard', '/images/tinkercad.png', 'color']
   ] },
   { category: 'Study Help & Videos', links: [
@@ -113,8 +113,8 @@ const LINK_LIBRARY = [
     ['YouTube', 'https://www.youtube.com/', '/images/youtube.png', 'color']
   ] },
   { category: 'Creative & Fun', links: [
-    ['Canva', 'https://www.canva.com/', G + 'palette.svg', 'black'],
-    ['Photopea', 'https://www.photopea.com/', G + 'layers.svg', 'black'],
+    ['Canva', 'https://www.canva.com/', '/images/canva.png', 'black'],
+    ['Photopea', 'https://www.photopea.com/', '/images/photopea.png', 'black'],
     ['Pixlr', 'https://pixlr.com/', '/images/pixlr.png', 'color'],
     ['Img BG Remover', 'https://www.remove.bg/', '/images/removeBG.png', 'black'],
     ['Sight Reading', 'https://www.sightreadingfactory.com/sight-reading', '/images/sightReading.png', 'black'],
@@ -157,7 +157,7 @@ function categoryOf(link) {
 
 // ---------- Updating lists saved by older versions ----------
 // Old URL → new URL (the link takes the new name/icon), or null to drop a dead link.
-const LINKS_VERSION = 2;
+const LINKS_VERSION = 3;
 const LINK_MIGRATIONS = {
   'http://mail.ehschools.org/': 'https://mail.google.com/',
   'https://easthamptonst.esboces.org/schooltoolweb/': 'https://esb.schooltool.com/eh',
@@ -184,6 +184,8 @@ function migrateList(list, seen) {
       const to = LINK_MIGRATIONS[link[1]];
       if (to === null) continue;
       next = DEFAULT_BY_URL.get(to).slice();
+    } else if (link[4] !== 'custom' && DEFAULT_BY_URL.has(link[1]) && String(link[2]).startsWith('/images/generic/')) {
+      next = DEFAULT_BY_URL.get(link[1]).slice(); // icon set replaced in v3
     }
     const key = next[4] === 'custom' ? JSON.stringify(next) : next[1];
     if (seen.has(key)) continue;
