@@ -14,7 +14,7 @@ const LINK_LIBRARY = [
     ['Tech Help', 'https://easthamptonufsd.schoolinsites.com/remotehelpdesk', '/images/support.png', 'black'],
     ['Program of Studies', 'https://drive.google.com/file/d/1MFGGMvMxjg64xsAQdArYz1TNGZBdjYZA/view', '/images/programOfStudies.png', 'black'],
     ['Edgenuity', 'https://auth.edgenuity.com/Login/Login', '/images/edgenuity.png', 'color'],
-    ['BOCES Programs', 'https://www.academyli.org/', '/images/boces.png', 'black'],
+    ['BOCES Programs', 'https://www.academyli.org/', '/images/boces.png', 'color'],
     ['BBS: The Current', 'https://www.youtube.com/@bbsthecurrent', '/images/bbs.png', 'color'],
     ['LTV EH', 'https://www.youtube.com/@LTVEastHampton', '/images/ltv.png', 'color']
   ] },
@@ -33,7 +33,7 @@ const LINK_LIBRARY = [
     ['Sora eBooks', 'https://soraapp.com/welcome/login/370662/ils/ehufsdny/form/East%20Hampton%20UFSD', '/images/sora.png', 'color'],
     ['Library Catalog', 'https://search.follettsoftware.com/metasearch/ui/29877', '/images/libraryCatalog.png', 'color'],
     ['Databases', 'https://auth.orc.scoolaid.net/bin/listdb?sysCode=xaaa&schoolId=773', '/images/database.png', 'black'],
-    ['NewsBank', 'https://infoweb.newsbank.com/home', '/images/newspaper.png', 'black'],
+    ['NewsBank', 'https://infoweb.newsbank.com/home', '/images/newsbank.png', 'color'],
     ['JSTOR', 'https://www.jstor.org/', '/images/jstor.png', 'color'],
     ['NoodleTools', 'https://my.noodletools.com/web2.0/projects.html', '/images/noodleTools.png', 'color'],
     ['ZoteroBib', 'https://zbib.org/', '/images/citation.png', 'color'],
@@ -158,7 +158,7 @@ function categoryOf(link) {
 
 // ---------- Updating lists saved by older versions ----------
 // Old URL → new URL (the link takes the new name/icon), or null to drop a dead link.
-const LINKS_VERSION = 4;
+const LINKS_VERSION = 5;
 const LINK_MIGRATIONS = {
   'http://mail.ehschools.org/': 'https://mail.google.com/',
   'https://easthamptonst.esboces.org/schooltoolweb/': 'https://esb.schooltool.com/eh',
