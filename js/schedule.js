@@ -1,4 +1,4 @@
-// Shared bell schedule + toolbar-badge logic.
+// Shared bell schedule + toolbar-badge logic. Needs schoolCalendar.js loaded first.
 // Loaded by the service worker (importScripts) and by extension pages (<script>).
 
 // [period, start (seconds after midnight), end (seconds after midnight)]
@@ -24,9 +24,7 @@ const BADGE_BUFFER_SECONDS = 30;
 const BADGE_MORNING_LEAD_SECONDS = 60 * 60;
 
 const BADGE_DEFAULTS = {
-  badgeEnabled: true,
-  schoolStart: '09-01', // MM-DD, repeats every year
-  schoolEnd: '06-30'
+  badgeEnabled: true
 };
 
 const BADGE_COLORS = {
@@ -35,18 +33,9 @@ const BADGE_COLORS = {
   almostDone: '#a80038'
 };
 
-function monthDay(date) {
-  return String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-}
-
-function isSchoolDay(date, settings) {
-  const day = date.getDay();
-  if (day === 0 || day === 6) return false;
-  const md = monthDay(date);
-  const start = settings.schoolStart || BADGE_DEFAULTS.schoolStart;
-  const end = settings.schoolEnd || BADGE_DEFAULTS.schoolEnd;
-  // A school year normally wraps around New Year (start > end).
-  return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);
+// School days come from the district calendar in schoolCalendar.js.
+function isSchoolDay(date) {
+  return getSchoolDayInfo(date).schoolDay;
 }
 
 // Where we are in the bell schedule right now, or null after the last period.
@@ -61,7 +50,7 @@ function getPeriodStatus(date) {
 
 // Returns { text, color, secondsUntilChange } — text '' means show no badge.
 function computeBadge(date, settings) {
-  if (!settings.badgeEnabled || !isSchoolDay(date, settings)) return { text: '', secondsUntilChange: null };
+  if (!settings.badgeEnabled || !isSchoolDay(date)) return { text: '', secondsUntilChange: null };
   const status = getPeriodStatus(date);
   if (!status) return { text: '', secondsUntilChange: null };
 

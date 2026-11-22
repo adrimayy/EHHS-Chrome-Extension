@@ -170,6 +170,23 @@ img { user-select: none; -webkit-user-drag: none; }
   color: var(--text-color);
 }
 
+.calendarInfo {
+  margin: 10px 0 4px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--soft-color);
+}
+.calRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.calRow span { color: var(--muted-color); }
+.calRow b { text-align: right; }
+#calWarning { color: #a80038; }
+
 .badgePreview { font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .badgeChip {
   display: inline-block;
@@ -284,12 +301,29 @@ img { user-select: none; -webkit-user-drag: none; }
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding: 0 2px 4px;
+}
+.librarySection { margin-bottom: 6px; }
+.libraryHeading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 4px 6px;
+  background: var(--panel-color);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--title-color);
+}
+.libraryTiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   grid-auto-rows: 92px;
   gap: 4px;
-  padding: 8px 2px 4px;
-  align-content: start;
+  padding: 2px 0 6px;
+  background: var(--soft-color);
+  border-radius: 14px;
 }
 .libraryTile {
   position: relative;
@@ -305,7 +339,7 @@ img { user-select: none; -webkit-user-drag: none; }
   font: inherit;
   transition: background 0.15s, transform 0.15s;
 }
-.libraryTile:hover { background: var(--soft-color); }
+.libraryTile:hover { background: #e6e1e3; }
 .libraryTile:active { transform: scale(0.94); }
 .libraryTile img {
   width: 40px;
@@ -361,7 +395,6 @@ img { user-select: none; -webkit-user-drag: none; }
 @keyframes popOut { to { transform: scale(0.3); opacity: 0; } }
 
 .emptyLibrary {
-  grid-column: 1 / -1;
   padding: 30px 10px;
   text-align: center;
   color: var(--muted-color);

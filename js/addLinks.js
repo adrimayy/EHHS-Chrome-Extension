@@ -19,6 +19,7 @@
   const linkKey = (link) => JSON.stringify(link);
 
   async function readLinks() {
+    await migrateStoredLinks();
     const { addedLinks } = await storageGet('local', ['addedLinks']);
     return addedLinks ? JSON.parse(addedLinks) : DEFAULT_ADDED_LINKS.map((l) => l.slice());
   }
