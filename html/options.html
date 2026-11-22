@@ -1,86 +1,127 @@
-<!-- This HTML file defines the structure of the options page of the web application. -->
+<!-- Editing page: live popup preview you can rearrange like an iPhone home screen,
+     plus the App Library of links that aren't on it. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Options</title>
+    <title>Edit EHHS Extension</title>
     <link rel="stylesheet" href="/css/options.css">
 </head>
 <body>
-    <div class="topNavContainer">
+    <header class="topNavContainer">
         <h1 id="topNavTitle">EAST HAMPTON HIGH SCHOOL</h1>
-    </div>
-    <div class="slidecontainer">
-        <p id="linkPerRowText">Links per row:</p>
-        <input type="range" min="1" max="5" value="3" class="slider" id="myRange">
-        <span id="sliderValue"></span>
-        <button id="resetButton">Reset</button>
-    </div>
-    <label class="container">Remove/Add to the top of the table
-        <input type="checkbox" id="addToTopCheckbox">
-        <span class="checkmark"></span>
-    </label>
-    
-    <button id="expandButton">+ Custom Link</button>
-    <div id="add-link-form-container" class="hidden">
-        <form id="add-link-form">
-            <label for="link-name">Link Name:</label>
-            <input type="text" id="link-name" name="link-name" autocomplete="off" required maxlength="20">
+    </header>
 
-            <label for="link-url">Link URL:</label>
-            <input type="url" id="link-url" name="link-url" autocomplete="off" required>
+    <main class="workspace">
+        <!-- Settings -->
+        <section class="panel settingsPanel">
+            <h2 class="panelTitle">Settings</h2>
 
-            <label for="link-image">Image Path:</label>
-            <div style="display: flex; align-items: center;">
-                <input type="text" id="link-image" name="link-image" autocomplete="off" required>
-                <img id="info-icon" src="/images/info.png" style="display:flex; cursor:pointer; margin-left: 10px; width:30px; height:30px;"/>
+            <div class="settingGroup">
+                <div class="settingRow">
+                    <label for="myRange" class="settingLabel">Links per row</label>
+                    <span id="sliderValue" class="settingValue">3</span>
+                </div>
+                <input type="range" min="1" max="5" value="3" class="slider" id="myRange">
+
+                <label class="toggleRow">
+                    <span class="settingLabel">Put moved links at the top</span>
+                    <input type="checkbox" id="addToTopCheckbox" class="toggle">
+                </label>
             </div>
 
-            <!-- The Modal -->
-            <div id="myModal" class="modal">
-                <div class="modal-content">
-                    <video src="/images/tutorial.mp4" id="tutorialGif" autoplay loop muted>
-                        Sorry, your browser doesn't support embedded videos.
-                    </video>
-                    <span class="close">&times;</span>
+            <div class="settingGroup">
+                <h3 class="groupTitle">Period timer</h3>
+                <label class="toggleRow">
+                    <span class="settingLabel">Show time left on the extension icon</span>
+                    <input type="checkbox" id="badgeEnabled" class="toggle" checked>
+                </label>
+                <div class="dateRow">
+                    <label for="schoolStart">First day of school</label>
+                    <input type="date" id="schoolStart">
+                </div>
+                <div class="dateRow">
+                    <label for="schoolEnd">Last day of school</label>
+                    <input type="date" id="schoolEnd">
+                </div>
+                <p class="hint">Runs on weekdays between these dates, every year, starting an hour before period 1. Chrome only wakes the extension about every 30 seconds, so the icon counts 30 seconds ahead: <b>4m</b> means at most 4 minutes left. Grey is class, blue is passing time, red is the last minute.</p>
+                <div class="badgePreview">Right now: <span id="badgeNow" class="badgeChip">—</span></div>
+            </div>
+
+            <button id="resetButton" class="dangerButton">Reset everything</button>
+        </section>
+
+        <!-- Live preview -->
+        <section class="panel previewPanel">
+            <div class="previewHeader">
+                <div>
+                    <h2 class="panelTitle">Home screen</h2>
+                    <p class="hint" id="previewHint">Exactly what the popup shows. Hold an icon or press Edit to move things around.</p>
+                </div>
+                <button id="jiggleButton" class="iosButton">Edit</button>
+            </div>
+            <div class="previewScroll">
+                <div class="popupFrame">
+                    <iframe id="previewFrame" src="/html/mainPage.html?edit=1" title="Popup preview" scrolling="no"></iframe>
                 </div>
             </div>
+        </section>
 
-            <label for="link-color">Color:</label>
-            <select id="link-color" name="link-color" required>
-                <option value="color">Color</option>
-                <option value="black">Black</option>
-            </select>
+        <!-- App Library -->
+        <section class="panel libraryPanel">
+            <div class="libraryHeader">
+                <h2 class="panelTitle">App Library <span id="libraryCount" class="count"></span></h2>
+                <button id="newLinkButton" class="primaryButton">+ New link</button>
+            </div>
+            <input type="search" id="librarySearch" class="searchBox" placeholder="Search links" autocomplete="off">
+            <p class="hint">Tap a link to put it on your home screen.</p>
+            <div id="libraryGrid" class="libraryGrid"></div>
+        </section>
+    </main>
 
-            <button type="submit">Add Link</button>
+    <!-- New / edit link sheet -->
+    <div id="linkSheet" class="sheetBackdrop" hidden>
+        <form id="add-link-form" class="sheet" autocomplete="off">
+            <div class="sheetHeader">
+                <button type="button" class="textButton" id="sheetCancel">Cancel</button>
+                <h3 id="sheetTitle">New link</h3>
+                <button type="submit" class="textButton bold" id="sheetSave">Add</button>
+            </div>
+
+            <div class="sheetBody">
+                <div class="iconPicker">
+                    <div id="dropZone" class="dropZone" tabindex="0" role="button" aria-label="Choose an image">
+                        <img id="iconPreview" alt="" hidden>
+                        <span id="dropZoneText">Drop an image,<br>click to choose,<br>or paste</span>
+                    </div>
+                    <input type="file" id="link-image-file" accept="image/*" hidden>
+                    <div class="tilePreview">
+                        <div class="tileIcon"><img id="tilePreviewImg" alt=""></div>
+                        <div class="tileName" id="tilePreviewName">Name</div>
+                    </div>
+                </div>
+                <p id="imageError" class="errorText" hidden></p>
+
+                <label for="link-name">Name</label>
+                <input type="text" id="link-name" required maxlength="20" placeholder="e.g. Desmos">
+
+                <label for="link-url">Link</label>
+                <input type="text" id="link-url" required placeholder="https://… or desmos.com" spellcheck="false">
+
+                <label>Icon style</label>
+                <div class="segmented">
+                    <label><input type="radio" name="link-color" value="color" checked><span>Original colors</span></label>
+                    <label><input type="radio" name="link-color" value="black"><span>One color (flips in dark mode)</span></label>
+                </div>
+
+                <button type="button" id="sheetRemove" class="dangerButton subtle" hidden>Remove from home screen</button>
+            </div>
         </form>
     </div>
 
-    <div class="tables-container">
-        <table id="addedLinksTable" class="draggable-table">
-            <thead>
-                <tr>
-                    <th>
-                        <div class="tableTitle">Added Links</div>
-                    </th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <table id="removedLinksTable" class="draggable-table">
-            <thead>
-                <tr>
-                    <th>
-                        <div class="tableTitle">Removed Links</div>
-                    </th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
+    <script src="/js/defaultLinks.js"></script>
+    <script src="/js/schedule.js"></script>
     <script src="/js/options.js"></script>
 </body>
 </html>
