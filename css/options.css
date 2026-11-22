@@ -339,7 +339,52 @@ img { user-select: none; -webkit-user-drag: none; }
   font: inherit;
   transition: background 0.15s, transform 0.15s;
 }
-.libraryTile:hover { background: #e6e1e3; }
+.libraryTile:hover, .libraryTile:focus-visible { background: #e6e1e3; outline: none; }
+
+/* Subject filter chips */
+.chips {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.chips::-webkit-scrollbar { height: 6px; }
+.chips::-webkit-scrollbar-thumb { background: #d6d0d2; border-radius: 3px; }
+.chip {
+  flex: none;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border: 1px solid var(--line-color);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip:hover { border-color: var(--title-color); }
+.chip.active { background: var(--title-color); border-color: var(--title-color); color: #fff; }
+
+/* Visit-first button */
+.visitBadge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff url('/images/open.png') center / 12px no-repeat;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  cursor: pointer;
+}
+.libraryTile:hover .visitBadge, .libraryTile:focus-visible .visitBadge { opacity: 1; }
+.visitBadge:hover { transform: scale(1.15); }
 .libraryTile:active { transform: scale(0.94); }
 .libraryTile img {
   width: 40px;
@@ -376,6 +421,8 @@ img { user-select: none; -webkit-user-drag: none; }
 .addBadge { left: 8px; background: var(--green); opacity: 0; transition: opacity 0.15s; }
 .libraryTile:hover .addBadge { opacity: 1; }
 .deleteBadge {
+  top: auto;
+  bottom: 18px;
   right: 8px;
   background: #c92a2a;
   font-size: 13px;

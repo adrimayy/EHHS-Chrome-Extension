@@ -117,11 +117,15 @@
   const libraryGrid = $('libraryGrid');
   const search = $('librarySearch');
 
+  let activeSubject = null; // subject chip filter; null = all
+
   function buildTile(link, index) {
-    const tile = document.createElement('button');
-    tile.type = 'button';
+    const info = infoOf(link);
+    const tile = document.createElement('div');
     tile.className = 'libraryTile' + (isCustom(link) ? ' custom' : '');
-    tile.title = `Add ${link[0]} to the home screen\n${link[1]}`;
+    tile.tabIndex = 0;
+    tile.setAttribute('role', 'button');
+    tile.title = `${link[0]}${info.desc ? ' — ' + info.desc : ''}\nClick to add to your home screen.`;
 
     const img = document.createElement('img');
     img.src = link[2];
@@ -132,7 +136,17 @@
     const add = document.createElement('span');
     add.className = 'addBadge';
     add.textContent = '+';
-    tile.append(add, img, label);
+
+    // Visit the site first, without adding it.
+    const visit = document.createElement('span');
+    visit.className = 'visitBadge';
+    visit.title = `Visit ${link[0]} in a new tab`;
+    visit.setAttribute('role', 'link');
+    visit.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open(link[1], '_blank', 'noopener');
+    });
+    tile.append(add, visit, img, label);
 
     if (isCustom(link)) {
       const del = document.createElement('span');
@@ -145,11 +159,47 @@
       });
       tile.append(del);
     }
-    tile.addEventListener('click', () => {
+    const addIt = () => {
       tile.classList.add('adding');
       setTimeout(() => addFromLibrary(index, link), 160);
-    });
+    };
+    tile.addEventListener('click', addIt);
+    tile.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addIt(); } });
     return tile;
+  }
+
+  function matches(link, q) {
+    if (activeSubject) {
+      if (activeSubject === CUSTOM_CATEGORY) { if (!isCustom(link)) return false; }
+      else if (!infoOf(link).tags.includes(activeSubject)) return false;
+    }
+    if (!q) return true;
+    const info = infoOf(link);
+    return [link[0], link[1], info.desc, ...info.tags].some((t) => t.toLowerCase().includes(q));
+  }
+
+  function renderChips(removed) {
+    const counts = new Map();
+    removed.forEach((link) => {
+      const tags = isCustom(link) ? [CUSTOM_CATEGORY] : infoOf(link).tags;
+      tags.forEach((t) => counts.set(t, (counts.get(t) || 0) + 1));
+    });
+    const chips = $('subjectChips');
+    chips.textContent = '';
+    const make = (label, value, n) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (activeSubject === value ? ' active' : '');
+      chip.textContent = n == null ? label : `${label} ${n}`;
+      chip.addEventListener('click', () => {
+        activeSubject = activeSubject === value || value === null ? null : value;
+        renderLibrary();
+      });
+      chips.appendChild(chip);
+    };
+    make('All', null, null);
+    [...SUBJECTS, CUSTOM_CATEGORY].forEach((sub) => { if (counts.get(sub)) make(sub, sub, counts.get(sub)); });
+    if (activeSubject && !counts.get(activeSubject)) activeSubject = null;
   }
 
   // Grouped into categories, like the iPhone App Library.
@@ -157,9 +207,10 @@
     const { removed } = await readLists();
     const q = search.value.trim().toLowerCase();
     $('libraryCount').textContent = removed.length ? `(${removed.length})` : '';
+    renderChips(removed);
     const groups = new Map([...LINK_CATEGORIES, CUSTOM_CATEGORY].map((c) => [c, []]));
     removed.forEach((link, index) => {
-      if (q && !link[0].toLowerCase().includes(q) && !link[1].toLowerCase().includes(q) && !categoryOf(link).toLowerCase().includes(q)) return;
+      if (!matches(link, q)) return;
       groups.get(isCustom(link) ? CUSTOM_CATEGORY : categoryOf(link)).push([link, index]);
     });
 
@@ -183,7 +234,7 @@
     if (!shown) {
       const empty = document.createElement('div');
       empty.className = 'emptyLibrary';
-      empty.textContent = q ? 'No matches.' : 'Everything is on your home screen.';
+      empty.textContent = q || activeSubject ? 'No matches.' : 'Everything is on your home screen.';
       libraryGrid.appendChild(empty);
     }
     libraryGrid.scrollTop = scrollTop;
