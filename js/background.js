@@ -13,6 +13,10 @@ const periodTimes = [
 
 function updateBadge() {   
   const now = new Date();
+  if (typeof getSchoolDayInfo === 'function' && !getSchoolDayInfo(now).schoolDay) {
+    periodElement.remove();
+    return;
+  }
   const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
 
   for (let i = 0; i < periodTimes.length; i++) {

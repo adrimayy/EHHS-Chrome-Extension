@@ -7,12 +7,10 @@
   const $ = (id) => document.getElementById(id);
   const storageGet = (area, keys) => new Promise((r) => chrome.storage[area].get(keys, r));
 
-  const defaultKeys = new Set(
-    [...DEFAULT_ADDED_LINKS, ...DEFAULT_REMOVED_LINKS].map((l) => l[0] + '|' + l[1])
-  );
-  const isCustom = (link) => link[4] === 'custom' || String(link[2]).startsWith('data:') || !defaultKeys.has(link[0] + '|' + link[1]);
+  const isCustom = (link) => link[4] === 'custom' || String(link[2]).startsWith('data:') || !DEFAULT_BY_URL.has(link[1]);
 
   async function readLists() {
+    await migrateStoredLinks();
     const { addedLinks, removedLinks } = await storageGet('local', ['addedLinks', 'removedLinks']);
     return {
       added: addedLinks ? JSON.parse(addedLinks) : DEFAULT_ADDED_LINKS.map((l) => l.slice()),
@@ -39,23 +37,28 @@
   });
   $('addToTopCheckbox').addEventListener('change', (e) => chrome.storage.sync.set({ isChecked: e.target.checked }));
 
-  // Period timer: dates are stored as MM-DD so they repeat every school year.
-  // Shown with this school year's year (Jul–Dec → fall year, Jan–Jun → spring year).
-  function toInputDate(md) {
+  // Period timer: school days come from the district calendar (schoolCalendar.js).
+  const fmtDay = (d) => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  function showCalendar() {
     const now = new Date();
-    const fallYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
-    const month = Number(md.split('-')[0]);
-    return `${month >= 7 ? fallYear : fallYear + 1}-${md}`;
+    const info = getSchoolDayInfo(now);
+    const lastYear = SCHOOL_YEARS[SCHOOL_YEARS.length - 1];
+    const upcoming = SCHOOL_YEARS.find((y) => isoDay(now) <= y.lastDay);
+    $('calYear').textContent = info.year ? info.year.name : (upcoming ? upcoming.name + ' (starts ' + fmtDay(new Date(upcoming.firstDay + 'T12:00')) + ')' : 'none loaded');
+    $('calToday').textContent = info.schoolDay ? 'School day' : info.reason;
+    const off = getNextDayOff(now);
+    $('calNextOff').textContent = off ? `${fmtDay(off.date)} · ${off.reason}` : '—';
+    const warn = $('calWarning');
+    // Remind from April of the last loaded year on, when next year's calendar is usually out.
+    warn.hidden = isoDay(now) < lastYear.lastDay.slice(0, 4) + '-04-01';
+    warn.textContent = `The newest calendar loaded ends ${fmtDay(new Date(lastYear.lastDay + 'T12:00'))}. Add next year's dates to js/schoolCalendar.js when the district posts them.`;
   }
   getBadgeSettings().then((s) => {
     $('badgeEnabled').checked = s.badgeEnabled;
-    $('schoolStart').value = toInputDate(s.schoolStart);
-    $('schoolEnd').value = toInputDate(s.schoolEnd);
+    showCalendar();
     updateBadgeNow();
   });
   $('badgeEnabled').addEventListener('change', (e) => chrome.storage.sync.set({ badgeEnabled: e.target.checked }));
-  $('schoolStart').addEventListener('change', (e) => e.target.value && chrome.storage.sync.set({ schoolStart: e.target.value.slice(5) }));
-  $('schoolEnd').addEventListener('change', (e) => e.target.value && chrome.storage.sync.set({ schoolEnd: e.target.value.slice(5) }));
 
   async function updateBadgeNow() {
     const badge = await refreshBadge();
@@ -68,7 +71,7 @@
       chip.style.background = '#d6d0d2';
     }
   }
-  setInterval(updateBadgeNow, 15000);
+  setInterval(() => { updateBadgeNow(); showCalendar(); }, 15000);
 
   $('resetButton').addEventListener('click', async () => {
     const ok = confirm('Reset your home screen, App Library and settings? Custom links and uploaded images will be erased. This can’t be undone.');
@@ -114,47 +117,68 @@
   const libraryGrid = $('libraryGrid');
   const search = $('librarySearch');
 
+  function buildTile(link, index) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'libraryTile' + (isCustom(link) ? ' custom' : '');
+    tile.title = `Add ${link[0]} to the home screen\n${link[1]}`;
+
+    const img = document.createElement('img');
+    img.src = link[2];
+    img.alt = '';
+    const label = document.createElement('span');
+    label.className = 'tileLabel';
+    label.textContent = link[0];
+    const add = document.createElement('span');
+    add.className = 'addBadge';
+    add.textContent = '+';
+    tile.append(add, img, label);
+
+    if (isCustom(link)) {
+      const del = document.createElement('span');
+      del.className = 'deleteBadge';
+      del.textContent = '✕';
+      del.title = 'Delete this custom link';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteFromLibrary(index, link);
+      });
+      tile.append(del);
+    }
+    tile.addEventListener('click', () => {
+      tile.classList.add('adding');
+      setTimeout(() => addFromLibrary(index, link), 160);
+    });
+    return tile;
+  }
+
+  // Grouped into categories, like the iPhone App Library.
   async function renderLibrary() {
     const { removed } = await readLists();
     const q = search.value.trim().toLowerCase();
     $('libraryCount').textContent = removed.length ? `(${removed.length})` : '';
+    const groups = new Map([...LINK_CATEGORIES, CUSTOM_CATEGORY].map((c) => [c, []]));
+    removed.forEach((link, index) => {
+      if (q && !link[0].toLowerCase().includes(q) && !link[1].toLowerCase().includes(q) && !categoryOf(link).toLowerCase().includes(q)) return;
+      groups.get(isCustom(link) ? CUSTOM_CATEGORY : categoryOf(link)).push([link, index]);
+    });
+
+    const scrollTop = libraryGrid.scrollTop;
     libraryGrid.textContent = '';
     let shown = 0;
-    removed.forEach((link, index) => {
-      if (q && !link[0].toLowerCase().includes(q) && !link[1].toLowerCase().includes(q)) return;
-      shown++;
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'libraryTile' + (isCustom(link) ? ' custom' : '');
-      tile.title = `Add ${link[0]} to the home screen\n${link[1]}`;
-
-      const img = document.createElement('img');
-      img.src = link[2];
-      img.alt = '';
-      const label = document.createElement('span');
-      label.className = 'tileLabel';
-      label.textContent = link[0];
-      const add = document.createElement('span');
-      add.className = 'addBadge';
-      add.textContent = '+';
-      tile.append(add, img, label);
-
-      if (isCustom(link)) {
-        const del = document.createElement('span');
-        del.className = 'deleteBadge';
-        del.textContent = '✕';
-        del.title = 'Delete this custom link';
-        del.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteFromLibrary(index, link);
-        });
-        tile.append(del);
-      }
-      tile.addEventListener('click', () => {
-        tile.classList.add('adding');
-        setTimeout(() => addFromLibrary(index, link), 160);
-      });
-      libraryGrid.appendChild(tile);
+    groups.forEach((entries, category) => {
+      if (!entries.length) return;
+      shown += entries.length;
+      const section = document.createElement('section');
+      section.className = 'librarySection';
+      const heading = document.createElement('h3');
+      heading.className = 'libraryHeading';
+      heading.textContent = category;
+      const grid = document.createElement('div');
+      grid.className = 'libraryTiles';
+      entries.forEach(([link, index]) => grid.appendChild(buildTile(link, index)));
+      section.append(heading, grid);
+      libraryGrid.appendChild(section);
     });
     if (!shown) {
       const empty = document.createElement('div');
@@ -162,6 +186,7 @@
       empty.textContent = q ? 'No matches.' : 'Everything is on your home screen.';
       libraryGrid.appendChild(empty);
     }
+    libraryGrid.scrollTop = scrollTop;
   }
 
   // Find the link again by value, in case the lists changed since rendering.
