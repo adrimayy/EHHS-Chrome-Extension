@@ -373,3 +373,44 @@ body.jiggling .removeBadge { display: block; }
   color: var(--text-color);
   opacity: 0.6;
 }
+
+/* Today's schedule picker (Schedule page) */
+.schedulePicker {
+    font-family: Roboto, sans-serif;
+    color: var(--text-color);
+    margin: 4px 0 6px 4px;
+    width: 255px;
+}
+.schedulePicker .pickerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 3px 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+.schedulePicker .pickerRow[hidden] { display: none; }
+.schedulePicker select,
+.schedulePicker input {
+    font: inherit;
+    font-weight: 500;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--title-color);
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+.schedulePicker option { color: #2b2024; }
+.schedulePicker .pickerNote {
+    margin: 2px 0 0;
+    font-size: 10.5px;
+    opacity: 0.75;
+}
+.officialSchedules {
+    display: block;
+    margin: 0 0 8px 4px;
+    font-family: Roboto, sans-serif;
+    font-size: 11px;
+    color: var(--title-color);
+}

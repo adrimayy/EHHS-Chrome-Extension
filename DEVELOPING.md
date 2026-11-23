@@ -6,7 +6,7 @@ Everything you'll normally change is in the **`data/`** folder. Each file is a p
 |---|---|
 | Links: add, remove, rename, re-categorize | `data/links.js` |
 | Which days the period timer runs | `data/calendar.js` |
-| Bell times | `data/bells.js` |
+| Bell schedules (regular, homeroom, delays) | `data/bells.js` |
 
 You never need to touch `js/`, `html/` or `css/` for these, and there's no version number to bump inside the code. When students get the update, their copies sync themselves: new links appear in their App Library, deleted ones leave it, and renamed links and new logos update on their home screens (unless a student renamed a link themselves).
 
@@ -85,9 +85,29 @@ Tip: count the school days in each month and compare them to the PDF's monthly t
 
 `npm run check` starts warning 90 days before the calendar runs out. Once it runs out, the period timer turns off until a new year is added.
 
-### Change bell times
+### Change bell times, or add a schedule
 
-Edit the times in `data/bells.js` (24-hour, like `'13:45'`). The badge timer and the Schedule page both read from it.
+`data/bells.js` holds every bell schedule: regular, 15-minute homeroom, 1-hour delay and 2-hour delay. They're copied from the PDFs under **Bell Schedules** on the EHHS page.
+
+- **To change a time,** edit it. Times are 24-hour, like `'13:45'`.
+- **To add a schedule,** copy a block and give it a new id and name. It shows up in the Today's schedule picker automatically.
+
+The badge timer, the popup's timer and the Schedule page all read from this file.
+
+### Snow days, delays and half days
+
+Students pick these themselves under **Today's schedule**, on the Schedule page or the editing page: a delay, homeroom, early dismissal (with a time) or no school. A pick only lasts for that day.
+
+For days known ahead, list them under `special` for that year in `data/calendar.js`, and every student gets them automatically:
+
+```js
+special: [
+  ['2027-01-26', 'homeroom'],
+  ['2027-06-24', 'early', '11:00'],
+],
+```
+
+EHHS doesn't publish a half-day bell schedule, so early dismissal follows the regular bells and stops at the dismissal time. If the school ever posts one, add it to `data/bells.js` as its own schedule.
 
 ---
 

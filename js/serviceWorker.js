@@ -17,7 +17,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.badgeEnabled) refreshBadge();
+  if ((area === 'sync' && changes.badgeEnabled) || (area === 'local' && changes.todaySchedule)) refreshBadge();
 });
 
 // Any time the worker wakes up (alarm, computer waking from sleep, browser start),

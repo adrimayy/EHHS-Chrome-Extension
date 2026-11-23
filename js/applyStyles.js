@@ -1,5 +1,6 @@
 window.addEventListener('load', function() {
   function applyStyles(cssProperties) {
+    if (!cssProperties) return;
     const rootStyles = document.documentElement.style;
     for (const [property, value] of Object.entries(cssProperties)) {
       rootStyles.setProperty(property, value);

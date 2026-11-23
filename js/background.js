@@ -1,35 +1,22 @@
+// The time-left chip in the popup. Follows today's bell schedule (schedule.js):
+// the regular bells, a delay or homeroom schedule, or an early dismissal.
 const periodElement = document.getElementById("periodTime");
-const periodTimes = [
-  [1, 7*3600 + 40*60, 8*3600 + 21*60],
-  [2, 8*3600 + 30*60, 9*3600 + 11*60],
-  [3, 9*3600 + 15*60, 9*3600 + 56*60],
-  [4, 10*3600 + 0*60, 10*3600 + 41*60],
-  [5, 10*3600 + 45*60, 11*3600 + 26*60],
-  [6, 11*3600 + 30*60, 12*3600 + 11*60],
-  [7, 12*3600 + 15*60, 12*3600 + 56*60],
-  [8, 13*3600 + 0*60, 13*3600 + 41*60],
-  [9, 13*3600 + 45*60, 14*3600 + 26*60]
-];
+let picked = null;
 
-function updateBadge() {   
+function updateBadge() {
   const now = new Date();
-  if (typeof getSchoolDayInfo === 'function' && !getSchoolDayInfo(now).schoolDay) {
+  if (!getSchoolDayInfo(now).schoolDay) {
     periodElement.remove();
-    return;
+    return false;
   }
-  const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-
-  for (let i = 0; i < periodTimes.length; i++) {
-    if (currentTime < periodTimes[i][1]) {
-      updateBadgeTextAndColor(periodTimes[i][1] - currentTime, false);
-      return;
-    } else if (currentTime <= periodTimes[i][2]) {
-      updateBadgeTextAndColor(periodTimes[i][2] - currentTime, true);
-      return;
-    }
+  const plan = todaysPlan(now, picked);
+  const status = plan.closed ? null : getPeriodStatus(now, plan);
+  if (!status) {
+    periodElement.remove();
+    return false;
   }
-
-  periodElement.remove();
+  updateBadgeTextAndColor(status.secondsLeft, status.inPeriod);
+  return true;
 }
 
 function updateBadgeTextAndColor(timeLeft, inPeriod) {
@@ -53,16 +40,14 @@ function updateBadgeTextAndColor(timeLeft, inPeriod) {
   periodElement.style.backgroundColor = color;
 }
 
-updateBadge();
-
-(function scheduleUpdate() {
-    const now = new Date();
-    const delay = 1000 - (now.getMilliseconds());
-    setTimeout(function() {
-        updateBadge();
-        scheduleUpdate();
-    }, delay);
-})();
+getPickedSchedule().then((p) => {
+  picked = p;
+  if (!updateBadge()) return;
+  (function scheduleUpdate() {
+    const delay = 1000 - new Date().getMilliseconds();
+    setTimeout(() => { if (updateBadge()) scheduleUpdate(); }, delay);
+  })();
+});
 
 // Opening the popup also refreshes the toolbar badge, in case Chrome put the
 // background worker to sleep longer than expected.

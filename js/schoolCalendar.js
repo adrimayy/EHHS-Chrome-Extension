@@ -20,7 +20,11 @@ function closures(list) {
 }
 
 // The years themselves live in data/calendar.js; this file only reads them.
-for (const year of SCHOOL_YEARS) year.closedDays = closures(year.closed);
+for (const year of SCHOOL_YEARS) {
+  year.closedDays = closures(year.closed);
+  // `special`: [date, schedule id, dismissal time for 'early'] -> { id, dismissal }
+  year.specialDays = Object.fromEntries((year.special || []).map(([day, id, dismissal]) => [day, { id, dismissal: dismissal || null }]));
+}
 
 
 function isoDay(date) {
@@ -35,7 +39,7 @@ function getSchoolDayInfo(date) {
   const weekday = date.getDay();
   if (weekday === 0 || weekday === 6) return { schoolDay: false, reason: 'Weekend', year };
   if (year.closedDays[day]) return { schoolDay: false, reason: year.closedDays[day], year };
-  return { schoolDay: true, reason: '', year };
+  return { schoolDay: true, reason: '', year, special: year.specialDays[day] || null };
 }
 
 // The next weekday off (holiday/recess) from `from` on, within the loaded calendars.
