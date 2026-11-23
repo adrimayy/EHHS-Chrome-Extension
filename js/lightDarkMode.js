@@ -1,25 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const lightDarkModeBtn = document.getElementById('lightDarkModeContainer');
+// Light/dark mode for the popup. The choice is saved to chrome.storage.sync only
+// when it changes (not on every popup open), so it doesn't use up Chrome's sync
+// limits. The Schedule page reads `cssProperties` through applyStyles.js.
+document.addEventListener('DOMContentLoaded', function () {
+  const button = document.getElementById('lightDarkModeContainer');
   const darkModeClass = 'dark-mode';
-  
-  let imagesObserver;
-
-  function applyDarkMode(isDarkMode) {
-    const images = document.querySelectorAll('img[alt="black"]');
-    const rootStyles = document.documentElement.style;
-
-    images.forEach(function(image) {
-      if (isDarkMode) {
-        image.classList.add(darkModeClass);
-      } else {
-        image.classList.remove(darkModeClass);
-      }
-    });
-
-  let cssProperties = {};
-
-  if (isDarkMode) {
-    cssProperties = {
+  const THEMES = {
+    dark: {
       '--background-color': '#2c2124',
       '--background-dark-color': '#1d1618',
       '--border-color': '#fbf9fa',
@@ -28,9 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
       '--title-color': '#a80038',
       '--blue-time-color': '#183a93',
       '--grey-time-color': '#353230'
-    };
-  } else {
-    cssProperties = {
+    },
+    light: {
       '--background-color': '#fbf9fa',
       '--background-dark-color': '#f2f2f2',
       '--border-color': '#2c2124',
@@ -39,98 +24,54 @@ document.addEventListener('DOMContentLoaded', function() {
       '--title-color': '#7A0C0D',
       '--blue-time-color': '#214fc6',
       '--grey-time-color': '#595959'
-    };
-  }
-
-  chrome.storage.sync.set({ cssProperties }, () => { });
-  chrome.storage.sync.get(['cssProperties'], (result) => {
-    const cssProperties = result.cssProperties;
-    const rootStyles = document.documentElement.style;
-    for (const [property, value] of Object.entries(cssProperties)) {
-      rootStyles.setProperty(property, value);
     }
-  });
+  };
+  let mode = 'light';
 
-
-    if (imagesObserver) {
-      imagesObserver.disconnect();
-    }
-
-    imagesObserver = observeImages(isDarkMode);
-
-  const lightDarkModeImage = document.getElementById('lightDarkModeImage');
-  const titleImage = document.getElementById('titleImage');
-
-  if (isDarkMode) {
-      lightDarkModeImage.setAttribute('src', '/images/lightBulb.png');
-      titleImage.setAttribute('src', '/images/lightSimpleBonac128.png');
-      chrome.action.setIcon({
-          path: {
-            "16": "/images/lightSimpleBonac16.png",
-            "32": "/images/lightSimpleBonac32.png",
-            "48": "/images/lightSimpleBonac48.png",
-            "128": "/images/lightSimpleBonac128.png"
-          }
-        });
-  } else {
-      lightDarkModeImage.setAttribute('src', '/images/moon.png');
-      titleImage.setAttribute('src', '/images/darkSimpleBonac128.png');
-      chrome.action.setIcon({
-          path: {
-              "16": "/images/darkSimpleBonac16.png",
-              "32": "/images/darkSimpleBonac32.png",
-              "48": "/images/darkSimpleBonac48.png",
-              "128": "/images/darkSimpleBonac128.png"
-          }
-        });
-  }
-    chrome.storage.sync.set({ isDarkMode: isDarkMode }, function() {
+  function setIconFor(m) {
+    const shade = m === 'dark' ? 'light' : 'dark';
+    chrome.action.setIcon({
+      path: {
+        16: `/images/${shade}SimpleBonac16.png`,
+        32: `/images/${shade}SimpleBonac32.png`,
+        48: `/images/${shade}SimpleBonac48.png`,
+        128: `/images/${shade}SimpleBonac128.png`
+      }
     });
   }
 
-  function observeImages(isDarkMode) {
-    const imagesObserver = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(function(node) {
-            if (node.nodeName === 'IMG' && node.getAttribute('alt') === 'black') {
-              if (isDarkMode) {
-                node.classList.add(darkModeClass);
-              } else {
-                node.classList.remove(darkModeClass);
-              }
-            }
-          });
-        }
-      });
-    });
-
-    const observerConfig = {
-      childList: true,
-      subtree: true,
-    };
-
-    imagesObserver.observe(document.body, observerConfig);
-    return imagesObserver;
+  function apply(m) {
+    mode = m;
+    const dark = m === 'dark';
+    const root = document.documentElement.style;
+    for (const [property, value] of Object.entries(THEMES[m])) root.setProperty(property, value);
+    // Icons marked alt="black" are one-color glyphs that turn white in dark mode.
+    // New icons get the class from addLinks.js when they're built.
+    document.querySelectorAll('img[alt="black"]').forEach((img) => img.classList.toggle(darkModeClass, dark));
+    document.getElementById('lightDarkModeImage').setAttribute('src', dark ? '/images/lightBulb.png' : '/images/moon.png');
+    document.getElementById('titleImage').setAttribute('src', dark ? '/images/lightSimpleBonac128.png' : '/images/darkSimpleBonac128.png');
   }
-  
-  lightDarkModeBtn.addEventListener('click', function() {
-    const currentMode = document.documentElement.style.getPropertyValue('--background-color') === '#2c2124' ? 'dark' : 'light';
-    const newMode = currentMode === 'light' ? 'dark' : 'light';
-    applyDarkMode(newMode === 'dark');
-    chrome.storage.sync.set({ mode: newMode }, function() {
-    });
-    document.dispatchEvent(new CustomEvent('lightDarkModeChanged', { detail: newMode }));
+
+  // Only writes what's actually different from what's saved.
+  function save(m, stored) {
+    const changes = {};
+    if (stored.mode !== m) changes.mode = m;
+    if (stored.isDarkMode !== (m === 'dark')) changes.isDarkMode = m === 'dark';
+    if (JSON.stringify(stored.cssProperties) !== JSON.stringify(THEMES[m])) changes.cssProperties = THEMES[m];
+    if (Object.keys(changes).length) chrome.storage.sync.set(changes);
+  }
+
+  chrome.storage.sync.get(['mode', 'isDarkMode', 'cssProperties'], (stored) => {
+    const m = stored.mode === 'dark' ? 'dark' : 'light';
+    apply(m);
+    save(m, stored); // first run (or an older version's leftovers) only
   });
-  
-  
-  chrome.storage.sync.get('mode', function(data) {
-    if (data.mode === 'dark') {
-      applyDarkMode(true);
-      imagesObserver = observeImages(true);
-    } else {
-      applyDarkMode(false);
-      imagesObserver = observeImages(false);
-    }
+
+  button.addEventListener('click', function () {
+    const next = mode === 'light' ? 'dark' : 'light';
+    apply(next);
+    setIconFor(next);
+    chrome.storage.sync.get(['mode', 'isDarkMode', 'cssProperties'], (stored) => save(next, stored));
+    document.dispatchEvent(new CustomEvent('lightDarkModeChanged', { detail: next }));
   });
-});  
+});

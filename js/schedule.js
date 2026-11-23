@@ -192,24 +192,70 @@ async function getBadgeSettings() {
   return settings;
 }
 
+// When the badge next needs to be showing: the morning lead before the first
+// bell of the next school day (today included). Null if no calendar covers it.
+function nextBadgeStart(now, settings) {
+  const enabled = settings.badgeEnabled;
+  if (!enabled) return null;
+  for (let i = 0; i < 400; i++) {
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12);
+    const info = getSchoolDayInfo(day);
+    if (!info.year && isoDay(day) > SCHOOL_YEARS[SCHOOL_YEARS.length - 1].lastDay) return null;
+    if (!info.schoolDay) continue;
+    const plan = todaysPlan(day, settings.todaySchedule, settings.announcements);
+    if (plan.closed || !plan.periods.length) continue;
+    const midnight = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+    const start = midnight + (plan.periods[0][1] - BADGE_MORNING_LEAD_SECONDS) * 1000;
+    const end = midnight + plan.periods[plan.periods.length - 1][2] * 1000;
+    if (end > now.getTime()) return Math.max(start, now.getTime());
+  }
+  return null;
+}
+
+// Keeps the badge right while using as little of the computer as possible:
+// during school hours, an exact alarm for each change plus a 1-minute backup;
+// outside them (nights, weekends, breaks, summer), one alarm for the next
+// morning and nothing else.
 async function refreshBadge() {
   if (!chrome.action) return null;
   const settings = await getBadgeSettings();
-  const badge = computeBadge(new Date(), settings);
+  const now = new Date();
+  const badge = computeBadge(now, settings);
   try {
     await chrome.action.setBadgeText({ text: badge.text });
     if (badge.text) {
       await chrome.action.setBadgeBackgroundColor({ color: badge.color });
       if (chrome.action.setBadgeTextColor) await chrome.action.setBadgeTextColor({ color: '#ffffff' });
     }
-    // One exact wake-up for the next time the text changes. A 1-minute heartbeat
-    // (set in the service worker) backs this up in case Chrome delays or drops it.
-    if (chrome.alarms && badge.secondsUntilChange) {
-      chrome.alarms.create('badge-exact', { when: Date.now() + badge.secondsUntilChange * 1000 });
+    if (chrome.alarms) {
+      const next = nextBadgeStart(now, settings);
+      const active = next !== null && next <= now.getTime() + 60 * 1000;
+      if (active) {
+        if (badge.secondsUntilChange) chrome.alarms.create('badge-exact', { when: Date.now() + badge.secondsUntilChange * 1000 });
+        const beat = await chrome.alarms.get('badge-heartbeat');
+        if (!beat) chrome.alarms.create('badge-heartbeat', { periodInMinutes: 1 });
+      } else {
+        chrome.alarms.clear('badge-heartbeat');
+        if (next) chrome.alarms.create('badge-exact', { when: next });
+        else chrome.alarms.clear('badge-exact');
+      }
     }
-    chrome.storage.local.set({ badgeUpdatedAt: Date.now() });
   } catch (e) {
     console.warn('Badge update failed', e);
   }
   return badge;
+}
+
+// Background checks for announcements only when one could matter: 5 am to 10 pm,
+// from two weeks before the school year until it ends. (Opening the popup
+// always checks.)
+function worthCheckingAnnouncements(now) {
+  const hour = now.getHours();
+  if (hour < 5 || hour >= 22) return false;
+  const day = isoDay(now);
+  return SCHOOL_YEARS.some((y) => {
+    const early = new Date(y.firstDay + 'T12:00');
+    early.setDate(early.getDate() - 14);
+    return day >= isoDay(early) && day <= y.lastDay;
+  });
 }

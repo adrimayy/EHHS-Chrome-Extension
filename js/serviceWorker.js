@@ -1,34 +1,46 @@
-// Background service worker: keeps the toolbar badge showing time left in the period.
+// Background service worker: keeps the toolbar badge showing time left in the
+// period, and checks for school announcements. Chrome puts it to sleep between
+// alarms; refreshBadge() only keeps alarms running during school hours.
 importScripts('/data/bells.js', '/data/calendar.js', '/data/links.js', '/js/schoolCalendar.js', '/js/defaultLinks.js', '/js/schedule.js');
 
-function setupBadge() {
-  chrome.alarms.create('badge-heartbeat', { periodInMinutes: 1 });
+function checkAnnouncements() {
+  if (worthCheckingAnnouncements(new Date())) syncAnnouncements();
+}
+
+// Chrome forgets a changed toolbar icon when it restarts; put the dark-mode one back.
+function restoreIcon() {
+  chrome.storage.sync.get('mode', ({ mode }) => {
+    if (mode !== 'dark') return;
+    const path = {};
+    for (const size of [16, 32, 48, 128]) path[size] = `/images/lightSimpleBonac${size}.png`;
+    chrome.action.setIcon({ path });
+  });
+}
+
+function setup() {
+  restoreIcon();
   chrome.alarms.create('announcements', { periodInMinutes: 15 });
-  syncAnnouncements();
+  checkAnnouncements();
   refreshBadge();
 }
 
-// After an update, fix dead links in lists saved by older versions.
+// After an update, bring saved links in step with data/links.js.
 chrome.runtime.onInstalled.addListener(() => migrateStoredLinks());
-
-chrome.runtime.onInstalled.addListener(setupBadge);
-chrome.runtime.onStartup.addListener(setupBadge);
+chrome.runtime.onInstalled.addListener(setup);
+chrome.runtime.onStartup.addListener(setup);
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name.startsWith('badge-')) refreshBadge();
-  if (alarm.name === 'announcements') syncAnnouncements();
+  if (alarm.name === 'announcements') checkAnnouncements();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if ((area === 'sync' && changes.badgeEnabled) || (area === 'local' && (changes.todaySchedule || changes.announcements))) refreshBadge();
 });
 
-// Any time the worker wakes up (alarm, computer waking from sleep, browser start),
-// fix the badge right away. Make sure the heartbeat exists too.
-chrome.alarms.get('badge-heartbeat', (alarm) => {
-  if (!alarm) chrome.alarms.create('badge-heartbeat', { periodInMinutes: 1 });
-});
+// Waking up (alarm, computer waking from sleep, browser start): fix the badge
+// right away, and make sure the announcements check exists.
 chrome.alarms.get('announcements', (alarm) => {
-  if (!alarm) { chrome.alarms.create('announcements', { periodInMinutes: 15 }); syncAnnouncements(); }
+  if (!alarm) chrome.alarms.create('announcements', { periodInMinutes: 15 });
 });
 refreshBadge();
