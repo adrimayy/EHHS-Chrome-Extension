@@ -1,0 +1,13 @@
+{
+  "help": [
+    "Post delays, snow days and early dismissals here. Every student's extension checks this file about every 15 minutes, and whenever a student opens the popup (GitHub can take up to 5 more), and their timers switch to the right bells.",
+    "Add one entry per day to the days list below. Past days are ignored, so you never need to clean up.",
+    "schedule can be: delay1 (1-hour delay), delay2 (2-hour delay), homeroom (15-minute homeroom), early (early dismissal, also needs a dismissal time like 11:00), closed (no school), or regular (to undo something).",
+    "message is optional and shows in the popup, e.g. 2-hour delay due to snow.",
+    "Example: { \"date\": \"2027-01-26\", \"schedule\": \"delay2\", \"message\": \"Snow\" }",
+    "Example: { \"date\": \"2027-06-24\", \"schedule\": \"early\", \"dismissal\": \"11:00\" }",
+    "Separate entries with commas, but put no comma after the last one. After you commit, check the Actions tab: a green check means the file is valid."
+  ],
+  "days": [
+  ]
+}

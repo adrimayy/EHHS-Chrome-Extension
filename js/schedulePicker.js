@@ -28,8 +28,8 @@ function mountSchedulePicker(container, onChange) {
   async function render() {
     const now = new Date();
     const info = getSchoolDayInfo(now);
-    const picked = await getPickedSchedule();
-    const plan = todaysPlan(now, picked);
+    const [picked, announced] = await Promise.all([getPickedSchedule(), getAnnouncements()]);
+    const plan = todaysPlan(now, picked, announced);
     if (!info.schoolDay) {
       select.disabled = true;
       select.value = 'regular';
@@ -43,6 +43,8 @@ function mountSchedulePicker(container, onChange) {
     if (plan.dismissal) time.value = plan.dismissal.padStart(5, '0');
     note.textContent = plan.source === 'picked'
       ? 'You changed today’s schedule. It goes back to normal tomorrow.'
+      : plan.source === 'school'
+        ? 'Posted by EHHS' + (plan.message ? ': ' + plan.message : '.')
       : plan.source === 'calendar'
         ? 'Set by the school calendar for today.'
         : 'Delay or snow day? Pick it here. It only lasts for today.';
@@ -53,12 +55,19 @@ function mountSchedulePicker(container, onChange) {
   async function save() {
     const id = select.value;
     const dismissal = id === EARLY_ID ? (time.value || '12:00').replace(/^0/, '') : null;
-    await setPickedSchedule(id, dismissal);
-    const plan = await render();
-    if (onChange) onChange(plan);
+    // Picking what the school/calendar already says just clears the student's pick.
+    const base = todaysPlan(new Date(), null, await getAnnouncements());
+    const same = base.id === id && (id !== EARLY_ID || base.dismissal === dismissal);
+    await setPickedSchedule(same ? null : id, dismissal);
   }
   select.addEventListener('change', save);
   time.addEventListener('change', save);
+  // Re-render when the student picks, or a new announcement arrives.
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== 'local' || !(changes.todaySchedule || changes.announcements)) return;
+    const plan = await render();
+    if (onChange) onChange(plan);
+  });
   render();
   return { render };
 }

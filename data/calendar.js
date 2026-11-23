@@ -62,3 +62,11 @@ const SCHOOL_YEARS = [
     special: []
   }
 ];
+
+// ============================================================================
+//  School announcements (delays, snow days, early dismissals) don't go here.
+//  They go in announcements.json at the top of the repository, which every
+//  student's extension checks every 15 minutes, so there's no update to
+//  release. See DEVELOPING.md, "Post a delay or snow day".
+// ============================================================================
+const ANNOUNCEMENTS_URL = 'https://raw.githubusercontent.com/adrimayy/EHHS-Chrome-Extension/main/announcements.json';

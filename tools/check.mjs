@@ -100,6 +100,33 @@ for (const y of SCHOOL_YEARS) {
   }
 }
 
+// ---------- announcements.json ----------
+let announcementCount = 0;
+try {
+  const text = fs.readFileSync(rel('announcements.json'), 'utf8');
+  let json;
+  try { json = JSON.parse(text); } catch (e) {
+    err(`announcements.json isn't valid JSON (${e.message}). Usually a missing or extra comma, or a missing quote. Students keep the last good version until it's fixed.`);
+  }
+  if (json) {
+    if (!Array.isArray(json.days)) err('announcements.json needs a "days": [ ... ] list.');
+    else for (const row of json.days) {
+      const who = `announcements.json ${JSON.stringify(row)}`;
+      announcementCount++;
+      if (!row || !isDate(row.date)) { err(`${who}: "date" should look like "2027-01-26".`); continue; }
+      const ok = row.schedule === 'closed' || row.schedule === 'early' || BELL_SCHEDULES[row.schedule];
+      if (!ok) err(`${who}: "schedule" must be one of ${[...Object.keys(BELL_SCHEDULES), 'early', 'closed'].join(', ')}.`);
+      if (row.schedule === 'early' && Number.isNaN(mins(row.dismissal || ''))) err(`${who}: early dismissal needs "dismissal": "11:00" (24-hour).`);
+      const extra = Object.keys(row).filter((k) => !['date', 'schedule', 'dismissal', 'message'].includes(k));
+      if (extra.length) err(`${who}: unknown field ${extra.join(', ')} (typo?).`);
+      const d = new Date(row.date + 'T12:00').getDay();
+      if (d === 0 || d === 6) warn(`${who}: that's a weekend.`);
+    }
+  }
+} catch {
+  // No announcements file yet: nothing to check.
+}
+
 // ---------- Images nobody uses ----------
 const extensionImages = new Set(['clock.png', 'open.png', 'pencil.png', 'moon.png', 'lightBulb.png', 'leftArrow.png', 'add.svg', 'remove.svg', 'ICONS.md']);
 const unused = fs.readdirSync(rel('images')).filter((f) => !iconsUsed.has(f) && !extensionImages.has(f) && !/SimpleBonac/.test(f));
@@ -138,7 +165,7 @@ if (online) {
 
 // ---------- Report ----------
 const count = all.length;
-console.log(`${count} links in ${Object.keys(LINKS).length} categories, ${homes.size} on a new home screen, ${SCHOOL_YEARS.length} school years, ${Object.keys(BELL_SCHEDULES).length} bell schedules.`);
+console.log(`${count} links in ${Object.keys(LINKS).length} categories, ${homes.size} on a new home screen, ${SCHOOL_YEARS.length} school years, ${Object.keys(BELL_SCHEDULES).length} bell schedules, ${announcementCount} announcement(s).`);
 if (unused.length) console.log(dim(`${unused.length} images aren't used by any current link (${unused.join(', ')}).\n  Keep them for a school year: deleted links can still be on students' home screens.`));
 for (const w of warnings) console.log(yellow('! ' + w));
 if (online) {

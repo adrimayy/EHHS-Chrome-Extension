@@ -7,22 +7,27 @@ const toSeconds = (hm) => { const [h, m] = hm.split(':').map(Number); return h *
 const CLOSED_ID = 'closed';
 const EARLY_ID = 'early';
 
-// Which schedule a day follows:
-//   1. what the student picked for today (chrome.storage.local `todaySchedule`),
-//   2. else a `special` day in data/calendar.js,
-//   3. else the regular schedule.
-// Returns { id, name, source, closed, dismissal, periods: [[label, startSec, endSec]] }.
-function todaysPlan(date, picked) {
+// Which schedule a day follows, newest decision first:
+//   - a school announcement (announcements.json, posted by the teacher), or what
+//     the student picked for today: whichever was set most recently,
+//   - else a `special` day in data/calendar.js,
+//   - else the regular schedule.
+// Returns { id, name, source, message, closed, dismissal, periods: [[label, startSec, endSec]] }.
+function todaysPlan(date, picked, announced) {
   const day = isoDay(date);
   let choice = null;
   let source = '';
-  if (picked && picked.date === day && picked.id) { choice = picked; source = 'picked'; }
+  const pick = picked && picked.date === day && picked.id ? picked : null;
+  const news = announced && announced.days && announced.days[day] ? announced.days[day] : null;
+  if (pick && (!news || (pick.at || 0) > (news.seenAt || 0))) { choice = pick; source = 'picked'; }
+  else if (news) { choice = news; source = 'school'; }
   else {
     const info = getSchoolDayInfo(date);
     if (info.special) { choice = info.special; source = 'calendar'; }
   }
+  const message = source === 'school' ? news.message || '' : '';
   const id = choice ? choice.id : 'regular';
-  if (id === CLOSED_ID) return { id, name: 'No school today', source, closed: true, periods: [] };
+  if (id === CLOSED_ID) return { id, name: 'No school', source, message, closed: true, periods: [] };
   if (id === EARLY_ID && choice.dismissal) {
     // No official half-day schedule is published, so follow the regular bells
     // and stop at the dismissal time.
@@ -30,13 +35,14 @@ function todaysPlan(date, picked) {
     const periods = BELL_SCHEDULES.regular.periods
       .map(([label, a, b]) => [label, toSeconds(a), Math.min(toSeconds(b), cut)])
       .filter(([, a, b]) => a < cut && a < b);
-    return { id, name: 'Early dismissal at ' + formatClock(choice.dismissal), source, dismissal: choice.dismissal, periods };
+    return { id, name: 'Early dismissal at ' + formatClock(choice.dismissal), source, message, dismissal: choice.dismissal, periods };
   }
   const schedule = BELL_SCHEDULES[id] || BELL_SCHEDULES.regular;
   return {
     id: BELL_SCHEDULES[id] ? id : 'regular',
     name: schedule.name,
     source,
+    message,
     periods: schedule.periods.map(([label, a, b]) => [label, toSeconds(a), toSeconds(b)])
   };
 }
@@ -59,13 +65,65 @@ function scheduleChoices() {
 function getPickedSchedule() {
   return new Promise((resolve) => chrome.storage.local.get('todaySchedule', (d) => resolve(d.todaySchedule || null)));
 }
-// Saves a choice for today only; it expires on its own tomorrow.
+// Saves a choice for today only (null clears it); it expires on its own tomorrow.
 function setPickedSchedule(id, dismissal) {
-  const now = new Date();
-  // Picking 'regular' just clears the pick, unless the calendar set something else today.
-  const backToNormal = id === 'regular' && !getSchoolDayInfo(now).special;
-  const value = backToNormal ? null : { date: isoDay(now), id, dismissal: dismissal || null };
+  const value = id ? { date: isoDay(new Date()), id, dismissal: dismissal || null, at: Date.now() } : null;
   return chrome.storage.local.set({ todaySchedule: value });
+}
+
+// ---------- School announcements ----------
+// The extension reads announcements.json from GitHub (ANNOUNCEMENTS_URL in
+// data/calendar.js) every 15 minutes and when the popup opens, so a teacher can post a delay, snow day
+// or early dismissal once and every student's timer follows it.
+const VALID_ID = (id) => id === CLOSED_ID || id === EARLY_ID || Object.prototype.hasOwnProperty.call(BELL_SCHEDULES, id);
+
+function getAnnouncements() {
+  return new Promise((resolve) => chrome.storage.local.get('announcements', (d) => resolve(d.announcements || null)));
+}
+
+// Turns the file into { days: { 'YYYY-MM-DD': { id, dismissal, message } } }, skipping bad rows.
+function parseAnnouncements(json) {
+  const days = {};
+  const rows = json && Array.isArray(json.days) ? json.days : [];
+  for (const row of rows) {
+    if (!row || !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !VALID_ID(row.schedule)) continue;
+    if (row.schedule === EARLY_ID && !/^\d{1,2}:\d{2}$/.test(row.dismissal || '')) continue;
+    days[row.date] = { id: row.schedule, dismissal: row.schedule === EARLY_ID ? row.dismissal : null, message: String(row.message || '').slice(0, 200) };
+  }
+  return days;
+}
+
+// Checks at most once every 5 minutes per computer (the whole school shares one
+// internet connection, and GitHub limits how often one connection can ask).
+const ANNOUNCEMENT_MIN_GAP_MS = 5 * 60 * 1000;
+
+async function syncAnnouncements() {
+  if (typeof ANNOUNCEMENTS_URL !== 'string' || !ANNOUNCEMENTS_URL) return null;
+  const { announcementsCheckedAt = 0 } = await chrome.storage.local.get('announcementsCheckedAt');
+  if (Date.now() - announcementsCheckedAt < ANNOUNCEMENT_MIN_GAP_MS) return null;
+  await chrome.storage.local.set({ announcementsCheckedAt: Date.now() });
+  try {
+    const res = await fetch(ANNOUNCEMENTS_URL + '?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const fresh = parseAnnouncements(await res.json());
+    const old = (await getAnnouncements()) || { days: {} };
+    const now = Date.now();
+    const today = isoDay(new Date());
+    const days = {};
+    for (const [day, entry] of Object.entries(fresh)) {
+      if (day < today) continue;
+      const before = old.days[day];
+      const same = before && before.id === entry.id && before.dismissal === entry.dismissal && before.message === entry.message;
+      // seenAt: when this announcement first reached this computer. A student's
+      // own pick made after it wins; an announcement posted after a pick wins.
+      days[day] = { ...entry, seenAt: same ? before.seenAt : now };
+    }
+    const value = { days };
+    if (JSON.stringify(old.days) !== JSON.stringify(days)) await chrome.storage.local.set({ announcements: value });
+    return value;
+  } catch (e) {
+    return null; // offline or a broken file: keep the last good copy
+  }
 }
 
 // Chrome only wakes an extension's service worker about every 30 seconds (alarms
@@ -106,7 +164,7 @@ function getPeriodStatus(date, plan = todaysPlan(date, null)) {
 // Returns { text, color, secondsUntilChange } — text '' means show no badge.
 function computeBadge(date, settings) {
   if (!settings.badgeEnabled || !isSchoolDay(date)) return { text: '', secondsUntilChange: null };
-  const plan = todaysPlan(date, settings.todaySchedule);
+  const plan = todaysPlan(date, settings.todaySchedule, settings.announcements);
   if (plan.closed) return { text: '', secondsUntilChange: null };
   const status = getPeriodStatus(date, plan);
   if (!status) return { text: '', secondsUntilChange: null };
@@ -130,6 +188,7 @@ function computeBadge(date, settings) {
 async function getBadgeSettings() {
   const settings = await new Promise((resolve) => chrome.storage.sync.get(BADGE_DEFAULTS, resolve));
   settings.todaySchedule = await getPickedSchedule();
+  settings.announcements = await getAnnouncements();
   return settings;
 }
 
