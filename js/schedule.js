@@ -1,18 +1,9 @@
-// Shared bell schedule + toolbar-badge logic. Needs schoolCalendar.js loaded first.
+// Toolbar-badge logic. Needs data/bells.js and schoolCalendar.js loaded first.
 // Loaded by the service worker (importScripts) and by extension pages (<script>).
 
-// [period, start (seconds after midnight), end (seconds after midnight)]
-const PERIOD_TIMES = [
-  [1, 7*3600 + 40*60, 8*3600 + 21*60],
-  [2, 8*3600 + 30*60, 9*3600 + 11*60],
-  [3, 9*3600 + 15*60, 9*3600 + 56*60],
-  [4, 10*3600 + 0*60, 10*3600 + 41*60],
-  [5, 10*3600 + 45*60, 11*3600 + 26*60],
-  [6, 11*3600 + 30*60, 12*3600 + 11*60],
-  [7, 12*3600 + 15*60, 12*3600 + 56*60],
-  [8, 13*3600 + 0*60, 13*3600 + 41*60],
-  [9, 13*3600 + 45*60, 14*3600 + 26*60]
-];
+// [period, start, end] in seconds after midnight, from data/bells.js.
+const toSeconds = (hm) => { const [h, m] = hm.split(':').map(Number); return h * 3600 + m * 60; };
+const PERIOD_TIMES = BELL_SCHEDULE.map(([num, start, end]) => [num, toSeconds(start), toSeconds(end)]);
 
 // Chrome only wakes an extension's service worker about every 30 seconds (alarms
 // can't fire sooner, and they can fire late). So the badge is calculated as if it
