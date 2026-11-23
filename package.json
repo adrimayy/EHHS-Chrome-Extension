@@ -1,0 +1,13 @@
+{
+  "name": "ehhs-chrome-extension",
+  "private": true,
+  "description": "Developer tools for the EHHS Chrome extension. The extension itself needs no build step. See DEVELOPING.md.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "check": "node tools/check.mjs",
+    "check:links": "node tools/check.mjs --online",
+    "icon": "node tools/icon.mjs",
+    "release": "node tools/release.mjs"
+  }
+}

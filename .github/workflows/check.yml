@@ -1,0 +1,21 @@
+# Runs `npm run check` on every push and pull request, and visits every link
+# each Monday morning. A red X on GitHub means something in data/ needs fixing;
+# open the run to see exactly what.
+name: Check links and calendar
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 12 * * 1'   # Mondays, ~7am New York
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run check
+      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: npm run check:links

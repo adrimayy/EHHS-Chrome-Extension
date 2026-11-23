@@ -1,5 +1,5 @@
 // Background service worker: keeps the toolbar badge showing time left in the period.
-importScripts('/js/schoolCalendar.js', '/js/defaultLinks.js', '/js/schedule.js');
+importScripts('/data/bells.js', '/data/calendar.js', '/data/links.js', '/js/schoolCalendar.js', '/js/defaultLinks.js', '/js/schedule.js');
 
 function setupBadge() {
   chrome.alarms.create('badge-heartbeat', { periodInMinutes: 1 });
