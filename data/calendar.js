@@ -7,6 +7,12 @@
 //    firstDay / lastDay   First and last days STUDENTS attend (YYYY-MM-DD).
 //    closed               Weekdays with no school: [first day, last day, name].
 //                         Weekends are skipped automatically.
+//    special              (optional) School days known ahead to run on another
+//                         bell schedule from data/bells.js:
+//                           ['2027-01-26', 'homeroom']
+//                           ['2027-06-24', 'early', '11:00']   early dismissal
+//                         Snow days and delays aren't known ahead, so students
+//                         pick those on the day (Schedule page or editing page).
 //  Old years can stay; they do no harm.
 // ============================================================================
 
@@ -30,7 +36,8 @@ const SCHOOL_YEARS = [
       ['2026-04-02', '2026-04-10', 'Spring Recess'],
       ['2026-05-25', '2026-05-25', 'Memorial Day'],
       ['2026-06-19', '2026-06-19', 'Juneteenth']
-    ]
+    ],
+    special: []
   },
   {
     name: '2026–27',
@@ -51,6 +58,7 @@ const SCHOOL_YEARS = [
       ['2027-04-19', '2027-04-23', 'Spring Recess'],
       ['2027-05-31', '2027-05-31', 'Memorial Day'],
       ['2027-06-18', '2027-06-18', 'Juneteenth']
-    ]
+    ],
+    special: []
   }
 ];

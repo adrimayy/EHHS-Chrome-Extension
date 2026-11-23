@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { loadData, rel, red, yellow, green, dim } from './lib.mjs';
 
 const online = process.argv.includes('--online');
-const { BELL_SCHEDULE, SCHOOL_YEARS, SUBJECTS, LINKS, MOVED_LINKS } = loadData();
+const { BELL_SCHEDULES, SCHOOL_YEARS, SUBJECTS, LINKS, MOVED_LINKS } = loadData();
 const errors = [];
 const warnings = [];
 const err = (m) => errors.push(m);
@@ -72,14 +72,32 @@ if (last) {
 }
 
 // ---------- Bells ----------
-const mins = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t); return m ? +m[1] * 60 + +m[2] : NaN; };
-let prevEnd = 0;
-for (const [p, s, e] of BELL_SCHEDULE) {
-  const a = mins(s), b = mins(e);
-  if (Number.isNaN(a) || Number.isNaN(b)) { err(`Bells: period ${p} times should look like '7:40' (24-hour).`); continue; }
-  if (a >= b) err(`Bells: period ${p} ends before it starts.`);
-  if (a < prevEnd) err(`Bells: period ${p} starts before the previous period ends.`);
-  prevEnd = b;
+const mins = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t); return m && +m[2] < 60 ? +m[1] * 60 + +m[2] : NaN; };
+if (!BELL_SCHEDULES.regular) err("Bells: there must be a schedule called 'regular'.");
+for (const [id, sched] of Object.entries(BELL_SCHEDULES)) {
+  const who = `Bells (${id})`;
+  if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(id)) err(`${who}: ids should be letters and numbers only.`);
+  if (id === 'early' || id === 'closed') err(`${who}: "${id}" is reserved for early dismissal / snow days.`);
+  if (!sched.name) err(`${who}: needs a name.`);
+  if (!Array.isArray(sched.periods) || !sched.periods.length) { err(`${who}: needs periods.`); continue; }
+  let prevEnd = 0;
+  for (const [label, s, e] of sched.periods) {
+    const a = mins(s), b = mins(e);
+    if (Number.isNaN(a) || Number.isNaN(b)) { err(`${who}: period ${label} times should look like '7:40' or '13:45' (24-hour).`); continue; }
+    if (a < 6 * 60) err(`${who}: period ${label} starts at ${s}. Use 24-hour times (1:45 pm is '13:45').`);
+    if (a >= b) err(`${who}: period ${label} ends before it starts (afternoon times are 24-hour: '13:45').`);
+    if (a < prevEnd) err(`${who}: period ${label} starts before the previous period ends.`);
+    prevEnd = b;
+  }
+}
+for (const y of SCHOOL_YEARS) {
+  for (const sp of y.special || []) {
+    const [day, id, time] = sp;
+    const who = `Calendar ${y.name}: special ${JSON.stringify(sp)}`;
+    if (!isDate(day) || day < y.firstDay || day > y.lastDay) err(`${who}: the date must be a school day in this year.`);
+    if (id === 'early') { if (Number.isNaN(mins(time || ''))) err(`${who}: early dismissal needs a time, like ['2027-06-24', 'early', '11:00'].`); }
+    else if (id !== 'closed' && !BELL_SCHEDULES[id]) err(`${who}: "${id}" isn't a schedule in data/bells.js (${Object.keys(BELL_SCHEDULES).join(', ')}).`);
+  }
 }
 
 // ---------- Images nobody uses ----------
@@ -120,7 +138,7 @@ if (online) {
 
 // ---------- Report ----------
 const count = all.length;
-console.log(`${count} links in ${Object.keys(LINKS).length} categories, ${homes.size} on a new home screen, ${SCHOOL_YEARS.length} school years, ${BELL_SCHEDULE.length} periods.`);
+console.log(`${count} links in ${Object.keys(LINKS).length} categories, ${homes.size} on a new home screen, ${SCHOOL_YEARS.length} school years, ${Object.keys(BELL_SCHEDULES).length} bell schedules.`);
 if (unused.length) console.log(dim(`${unused.length} images aren't used by any current link (${unused.join(', ')}).\n  Keep them for a school year: deleted links can still be on students' home screens.`));
 for (const w of warnings) console.log(yellow('! ' + w));
 if (online) {

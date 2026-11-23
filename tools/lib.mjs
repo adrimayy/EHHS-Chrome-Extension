@@ -21,7 +21,7 @@ export function loadData() {
       process.exit(1);
     }
   }
-  return vm.runInContext('({ BELL_SCHEDULE, SCHOOL_YEARS, SUBJECTS, LINKS, MOVED_LINKS })', ctx);
+  return vm.runInContext('({ BELL_SCHEDULES, SCHOOL_YEARS, SUBJECTS, LINKS, MOVED_LINKS })', ctx);
 }
 
 export const red = (s) => `\x1b[31m${s}\x1b[0m`;
