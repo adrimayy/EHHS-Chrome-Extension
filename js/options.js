@@ -44,7 +44,9 @@
     const info = getSchoolDayInfo(now);
     const lastYear = SCHOOL_YEARS[SCHOOL_YEARS.length - 1];
     const upcoming = SCHOOL_YEARS.find((y) => isoDay(now) <= y.lastDay);
-    $('calYear').textContent = info.year ? info.year.name : (upcoming ? upcoming.name + ' (starts ' + fmtDay(new Date(upcoming.firstDay + 'T12:00')) + ')' : 'none loaded');
+    const shown = info.year || upcoming;
+    $('calYear').textContent = !shown ? 'none loaded'
+      : shown.name + (shown.estimated ? ' (estimated)' : '') + (info.year ? '' : ' · starts ' + fmtDay(new Date(shown.firstDay + 'T12:00')));
     if (info.schoolDay) {
       const plan = todaysPlan(now, pickedToday, announcedToday);
       $('calToday').textContent = plan.id === 'regular' ? 'School day' : plan.name;
@@ -54,9 +56,15 @@
     const off = getNextDayOff(now);
     $('calNextOff').textContent = off ? `${fmtDay(off.date)} · ${off.reason}` : '—';
     const warn = $('calWarning');
-    // Remind from April of the last loaded year on, when next year's calendar is usually out.
-    warn.hidden = isoDay(now) < lastYear.lastDay.slice(0, 4) + '-04-01';
-    warn.textContent = `The newest calendar loaded ends ${fmtDay(new Date(lastYear.lastDay + 'T12:00'))}. Add next year's dates to data/calendar.js when the district posts them.`;
+    if (!shown) {
+      warn.hidden = false;
+      warn.textContent = `No school calendar is loaded after ${fmtDay(new Date(lastYear.lastDay + 'T12:00'))}, so the timer is off. An update to the extension will add it.`;
+    } else if (shown.estimated) {
+      warn.hidden = false;
+      warn.textContent = `The district hasn't published ${shown.name} yet, so these dates are estimated from past calendars: holidays that repeat every year. Spring break isn't included; on days off it misses, pick "No school" under Today's schedule.`;
+    } else {
+      warn.hidden = true;
+    }
   }
   let pickedToday = null;
   let announcedToday = null;

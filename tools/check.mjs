@@ -48,6 +48,7 @@ for (const [from, to] of Object.entries(MOVED_LINKS)) {
 }
 
 // ---------- Calendar ----------
+const isoOf = (d) => d.toISOString().slice(0, 10);
 const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(new Date(d + 'T12:00').getTime());
 const today = new Date().toISOString().slice(0, 10);
 let prevLast = '';
@@ -69,6 +70,13 @@ if (last) {
   const daysLeft = (new Date(last.lastDay) - new Date(today)) / 864e5;
   if (daysLeft < 0) err(`The calendar ends ${last.lastDay}, so the period timer is off. Add the next school year to data/calendar.js.`);
   else if (daysLeft < 90) warn(`The calendar ends ${last.lastDay}. Add next year to data/calendar.js once the Board adopts it.`);
+}
+// Estimated years should be replaced by the real calendar before they start.
+const soon = new Date(today); soon.setDate(soon.getDate() + 150);
+for (const y of SCHOOL_YEARS) {
+  if (y.estimated && y.firstDay <= isoOf(soon) && y.lastDay >= today) {
+    warn(`${y.name} is still estimated (from past calendars; no spring break). Replace it with the Board-adopted calendar in data/calendar.js and remove "estimated: true".`);
+  }
 }
 
 // ---------- Bells ----------

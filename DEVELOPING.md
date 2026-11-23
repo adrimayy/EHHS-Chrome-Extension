@@ -77,6 +77,10 @@ The `home: 1`, `home: 2`, … numbers decide which links a **new** install start
 
 ### Add next school year's calendar (every summer)
 
+`data/calendar.js` already has **estimated** years through 2031–32 (marked `estimated: true`), so the timer never stops working. They're built only from rules that held in both official calendars: the first and last day, and the holidays that repeat. Spring break isn't included, because it didn't follow a pattern. When the Board adopts the real calendar, **replace** that year's estimated block with the real dates and delete `estimated: true`. `npm run check` reminds you five months before an estimated year starts. To add more estimated years: `pip install convertdate python-dateutil`, then `python3 tools/estimate-years.py 2032 2034`.
+
+#### Entering the real calendar
+
 When the Board adopts the calendar, open `data/calendar.js`, copy the last year's block and fill it in from the PDF:
 
 - `firstDay` / `lastDay`: the first and last days **students** attend.
