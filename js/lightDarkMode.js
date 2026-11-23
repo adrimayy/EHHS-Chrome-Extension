@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
           path: {
             "16": "/images/lightSimpleBonac16.png",
             "32": "/images/lightSimpleBonac32.png",
-            "64": "/images/lightSimpleBonac64.png",
+            "48": "/images/lightSimpleBonac48.png",
             "128": "/images/lightSimpleBonac128.png"
           }
         });
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
           path: {
               "16": "/images/darkSimpleBonac16.png",
               "32": "/images/darkSimpleBonac32.png",
-              "64": "/images/darkSimpleBonac64.png",
+              "48": "/images/darkSimpleBonac48.png",
               "128": "/images/darkSimpleBonac128.png"
           }
         });

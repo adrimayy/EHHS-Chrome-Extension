@@ -346,7 +346,8 @@
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
         URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/png'));
+        // WebP keeps transparency at a fraction of PNG's size, so saved icons stay small.
+        resolve(canvas.toDataURL('image/webp', 0.9));
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
@@ -422,7 +423,12 @@
     } else {
       added.unshift([nameInput.value.trim(), url, sheetState.image, color, 'custom']);
     }
-    await writeLists(added, removed);
+    try {
+      await writeLists(added, removed);
+    } catch (err) {
+      showError('Couldn’t save: Chrome’s storage for this extension is full. Remove a few custom icons and try again.');
+      return;
+    }
     closeSheet();
   });
 
