@@ -6,16 +6,18 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const rel = (...p) => path.join(ROOT, ...p);
+// Everything Chrome loads lives in extension/ (what you zip for the Web Store).
+export const ext = (...p) => path.join(ROOT, 'extension', ...p);
 
 // Runs the data files the same way the extension does and returns what they define.
 export function loadData() {
   const ctx = vm.createContext({});
   for (const file of ['data/bells.js', 'data/calendar.js', 'data/links.js']) {
     try {
-      vm.runInContext(fs.readFileSync(rel(file), 'utf8'), ctx, { filename: file });
+      vm.runInContext(fs.readFileSync(ext(file), 'utf8'), ctx, { filename: 'extension/' + file });
     } catch (err) {
-      console.error(`\n✗ ${file} has a typo: ${err.message}`);
-      const where = String(err.stack).split('\n').find((l) => l.includes(file));
+      console.error(`\n✗ extension/${file} has a typo: ${err.message}`);
+      const where = String(err.stack).split('\n').find((l) => l.includes('extension/' + file));
       if (where) console.error('  ' + where.trim());
       console.error('  Look for a missing comma, quote or bracket near there.\n');
       process.exit(1);

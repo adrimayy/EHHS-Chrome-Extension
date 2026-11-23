@@ -1,7 +1,7 @@
-// npm run check          Catches mistakes in data/ before they reach students.
+// npm run check          Catches mistakes in extension/data/ before they reach students.
 // npm run check:links    Also visits every website and reports dead or moved ones.
 import fs from 'node:fs';
-import { loadData, rel, red, yellow, green, dim } from './lib.mjs';
+import { loadData, rel, ext, red, yellow, green, dim } from './lib.mjs';
 
 const online = process.argv.includes('--online');
 const { BELL_SCHEDULES, SCHOOL_YEARS, SUBJECTS, LINKS, MOVED_LINKS } = loadData();
@@ -30,7 +30,7 @@ for (const e of all) {
   if (e.url && urls.has(e.url)) err(`${who}: same url as "${urls.get(e.url)}". Each link needs its own url.`);
   if (e.url) urls.set(e.url, e.name);
   if (!e.icon) err(`${who}: needs an icon.`);
-  else if (!fs.existsSync(rel('images', e.icon))) err(`${who}: images/${e.icon} doesn't exist. Get it with: npm run icon -- ${e.icon.replace(/\.\w+$/, '')} <website>`);
+  else if (!fs.existsSync(ext('images', e.icon))) err(`${who}: extension/images/${e.icon} doesn't exist. Get it with: npm run icon -- ${e.icon.replace(/\.\w+$/, '')} <website>`);
   else iconsUsed.add(e.icon);
   if (!e.about) warn(`${who}: no "about" sentence, so students won't know what it's for.`);
   if (!Array.isArray(e.subjects)) err(`${who}: subjects must be a list, e.g. subjects: ['School'] (or [] to show only under All).`);
@@ -68,14 +68,14 @@ for (const y of SCHOOL_YEARS) {
 const last = SCHOOL_YEARS[SCHOOL_YEARS.length - 1];
 if (last) {
   const daysLeft = (new Date(last.lastDay) - new Date(today)) / 864e5;
-  if (daysLeft < 0) err(`The calendar ends ${last.lastDay}, so the period timer is off. Add the next school year to data/calendar.js.`);
-  else if (daysLeft < 90) warn(`The calendar ends ${last.lastDay}. Add next year to data/calendar.js once the Board adopts it.`);
+  if (daysLeft < 0) err(`The calendar ends ${last.lastDay}, so the period timer is off. Add the next school year to extension/data/calendar.js.`);
+  else if (daysLeft < 90) warn(`The calendar ends ${last.lastDay}. Add next year to extension/data/calendar.js once the Board adopts it.`);
 }
 // Estimated years should be replaced by the real calendar before they start.
 const soon = new Date(today); soon.setDate(soon.getDate() + 150);
 for (const y of SCHOOL_YEARS) {
   if (y.estimated && y.firstDay <= isoOf(soon) && y.lastDay >= today) {
-    warn(`${y.name} is still estimated (from past calendars; no spring break). Replace it with the Board-adopted calendar in data/calendar.js and remove "estimated: true".`);
+    warn(`${y.name} is still estimated (from past calendars; no spring break). Replace it with the Board-adopted calendar in extension/data/calendar.js and remove "estimated: true".`);
   }
 }
 
@@ -104,7 +104,7 @@ for (const y of SCHOOL_YEARS) {
     const who = `Calendar ${y.name}: special ${JSON.stringify(sp)}`;
     if (!isDate(day) || day < y.firstDay || day > y.lastDay) err(`${who}: the date must be a school day in this year.`);
     if (id === 'early') { if (Number.isNaN(mins(time || ''))) err(`${who}: early dismissal needs a time, like ['2027-06-24', 'early', '11:00'].`); }
-    else if (id !== 'closed' && !BELL_SCHEDULES[id]) err(`${who}: "${id}" isn't a schedule in data/bells.js (${Object.keys(BELL_SCHEDULES).join(', ')}).`);
+    else if (id !== 'closed' && !BELL_SCHEDULES[id]) err(`${who}: "${id}" isn't a schedule in extension/data/bells.js (${Object.keys(BELL_SCHEDULES).join(', ')}).`);
   }
 }
 
@@ -137,7 +137,7 @@ try {
 
 // ---------- Images nobody uses ----------
 const extensionImages = new Set(['clock.png', 'open.png', 'pencil.png', 'moon.png', 'lightBulb.png', 'leftArrow.png', 'add.svg', 'remove.svg', 'ICONS.md']);
-const unused = fs.readdirSync(rel('images')).filter((f) => !iconsUsed.has(f) && !extensionImages.has(f) && !/SimpleBonac/.test(f));
+const unused = fs.readdirSync(ext('images')).filter((f) => !iconsUsed.has(f) && !extensionImages.has(f) && !/SimpleBonac/.test(f));
 
 // ---------- Websites ----------
 async function visit(url) {

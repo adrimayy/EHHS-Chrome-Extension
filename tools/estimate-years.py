@@ -1,9 +1,9 @@
-# Prints ESTIMATED school years for data/calendar.js, from the rules that held in
+# Prints ESTIMATED school years for extension/data/calendar.js, from the rules that held in
 # both official calendars (2025-26 and 2026-27). See the comment above the
 # estimated years in data/calendar.js for the rules.
 #   pip install convertdate python-dateutil
-#   python3 tools/estimate-years.py 2032 2034     -> 2032-33 and 2033-34
-# Paste the output into SCHOOL_YEARS. Real Board calendars always replace these.
+#   python3 tools/estimate-years.py 2032 2034  -> 2032-33 and 2033-34
+# Paste the output into SCHOOL_YEARS in extension/data/calendar.js. Real Board calendars always replace these.
 import sys
 from datetime import date, timedelta
 from convertdate import hebrew
