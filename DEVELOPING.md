@@ -1,12 +1,14 @@
 # Updating the EHHS extension
 
-Everything you'll normally change is in the **`data/`** folder. Each file is a plain list with instructions at the top:
+Everything Chrome loads is in the **`extension/`** folder. That folder *is* the extension: load it in Chrome to test, and zip it for the Web Store (`npm run release` does that for you).
+
+Everything you'll normally change is in **`extension/data/`**. Each file is a plain list with instructions at the top:
 
 | To change… | Edit |
 |---|---|
-| Links: add, remove, rename, re-categorize | `data/links.js` |
-| Which days the period timer runs | `data/calendar.js` |
-| Bell schedules (regular, homeroom, delays) | `data/bells.js` |
+| Links: add, remove, rename, re-categorize | `extension/data/links.js` |
+| Which days the period timer runs | `extension/data/calendar.js` |
+| Bell schedules (regular, homeroom, delays) | `extension/data/bells.js` |
 | **Today's** delay, snow day or early dismissal | `announcements.json`. Edit it on GitHub; no release needed |
 
 You never need to touch `js/`, `html/` or `css/` for these, and there's no version number to bump inside the code. When students get the update, their copies sync themselves: new links appear in their App Library, deleted ones leave it, and renamed links and new logos update on their home screens (unless a student renamed a link themselves).
@@ -31,11 +33,11 @@ It catches typos, missing logos, unknown subjects, duplicate links, calendar mis
    ```
    npm run icon -- khan https://www.khanacademy.org
    ```
-   This saves `images/khan.png`.
+   This saves `extension/images/khan.png`.
 
-   If Google has no logo, or only a small one, save a square PNG (128 to 192 px) into `images/` yourself. For a one-color symbol instead of a logo, download one from [Google Fonts icons](https://fonts.google.com/icons) and set `mono: true`.
+   If Google has no logo, or only a small one, save a square PNG (128 to 192 px) into `extension/images/` yourself. For a one-color symbol instead of a logo, download one from [Google Fonts icons](https://fonts.google.com/icons) and set `mono: true`.
 
-2. In `data/links.js`, add an entry to a category:
+2. In `extension/data/links.js`, add an entry to a category:
    ```js
    { name: 'Khan Academy', url: 'https://www.khanacademy.org/', icon: 'khan.png',
      about: 'Free lessons and practice for every math and science course.',
@@ -77,11 +79,11 @@ The `home: 1`, `home: 2`, … numbers decide which links a **new** install start
 
 ### Add next school year's calendar (every summer)
 
-`data/calendar.js` already has **estimated** years through 2031–32 (marked `estimated: true`), so the timer never stops working. They're built only from rules that held in both official calendars: the first and last day, and the holidays that repeat. Spring break isn't included, because it didn't follow a pattern. When the Board adopts the real calendar, **replace** that year's estimated block with the real dates and delete `estimated: true`. `npm run check` reminds you five months before an estimated year starts. To add more estimated years: `pip install convertdate python-dateutil`, then `python3 tools/estimate-years.py 2032 2034`.
+`extension/data/calendar.js` already has **estimated** years through 2031–32 (marked `estimated: true`), so the timer never stops working. They're built only from rules that held in both official calendars: the first and last day, and the holidays that repeat. Spring break isn't included, because it didn't follow a pattern. When the Board adopts the real calendar, **replace** that year's estimated block with the real dates and delete `estimated: true`. `npm run check` reminds you five months before an estimated year starts. To add more estimated years: `pip install convertdate python-dateutil`, then `python3 tools/estimate-years.py 2032 2034`.
 
 #### Entering the real calendar
 
-When the Board adopts the calendar, open `data/calendar.js`, copy the last year's block and fill it in from the PDF:
+When the Board adopts the calendar, open `extension/data/calendar.js`, copy the last year's block and fill it in from the PDF:
 
 - `firstDay` / `lastDay`: the first and last days **students** attend.
 - `closed`: every weekday off, as `['2027-11-25', '2027-11-26', 'Thanksgiving Recess']`. Weekends are skipped automatically.
@@ -92,7 +94,7 @@ Tip: count the school days in each month and compare them to the PDF's monthly t
 
 ### Change bell times, or add a schedule
 
-`data/bells.js` holds every bell schedule: regular, 15-minute homeroom, 1-hour delay and 2-hour delay. They're copied from the PDFs under **Bell Schedules** on the EHHS page.
+`extension/data/bells.js` holds every bell schedule: regular, 15-minute homeroom, 1-hour delay and 2-hour delay. They're copied from the PDFs under **Bell Schedules** on the EHHS page.
 
 - **To change a time,** edit it. Times are 24-hour, like `'13:45'`.
 - **To add a schedule,** copy a block and give it a new id and name. It shows up in the Today's schedule picker automatically.
@@ -133,11 +135,11 @@ To give a teacher access: on GitHub, open the repository's **Settings → Collab
 
 **Students can still pick a schedule themselves** under **Today's schedule** (Schedule page or editing page), for example if they hear about a delay before it's posted. Whichever was set most recently wins, and a student's pick lasts only that day.
 
-**Days known when the calendar is written** (for example a homeroom day) can also go under `special` in `data/calendar.js`. Those only reach students with the next release, so `announcements.json` is usually easier.
+**Days known when the calendar is written** (for example a homeroom day) can also go under `special` in `extension/data/calendar.js`. Those only reach students with the next release, so `announcements.json` is usually easier.
 
-EHHS doesn't publish a half-day bell schedule, so `early` follows the regular bells and stops at the dismissal time. If the school posts one, add it to `data/bells.js` as its own schedule.
+EHHS doesn't publish a half-day bell schedule, so `early` follows the regular bells and stops at the dismissal time. If the school posts one, add it to `extension/data/bells.js` as its own schedule.
 
-**If GitHub ever limits requests:** the whole school shares one internet connection, and GitHub limits how often one connection can download raw files. Each copy checks at most every 5 minutes, which should be well within the limit. If it ever becomes a problem, turn on GitHub Pages for the repository (**Settings → Pages → Deploy from branch: main**). Then set `ANNOUNCEMENTS_URL` in `data/calendar.js` to `https://adrimayy.github.io/EHHS-Chrome-Extension/announcements.json` and release.
+**If GitHub ever limits requests:** the whole school shares one internet connection, and GitHub limits how often one connection can download raw files. Each copy checks at most every 5 minutes, which should be well within the limit. If it ever becomes a problem, turn on GitHub Pages for the repository (**Settings → Pages → Deploy from branch: main**). Then set `ANNOUNCEMENTS_URL` in `extension/data/calendar.js` to `https://adrimayy.github.io/EHHS-Chrome-Extension/announcements.json` and release.
 
 ---
 
@@ -162,24 +164,28 @@ npm run release              # 0.6.0 → 0.6.1
 npm run release -- minor     # 0.6.1 → 0.7.0
 ```
 
-This runs the checks, bumps the version in `manifest.json`, and builds `dist/ehhs-extension-<version>.zip` with only the files the extension needs.
+This runs the checks, bumps the version in `extension/manifest.json`, and zips the `extension/` folder into `dist/ehhs-extension-<version>.zip`, ready to upload as is.
 
 Then:
 
 1. Commit.
 2. Upload the zip in the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole).
 
-To test before releasing, open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and pick this folder. After editing, click the reload arrow on the extension's card.
+To test before releasing, open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and pick the **`extension`** folder. After editing, click the reload arrow on the extension's card.
 
 ## Where things live
 
 ```
-data/       What you edit: links, calendar, bell times
-images/     Logos and icons (credits in images/ICONS.md)
-html/       Popup (mainPage), editing page (options), Schedule page (clockPage)
-js/         Extension code; reads data/ and keeps saved links in sync
-css/        Styles
-tools/      npm run check / icon / release (not shipped to students)
+extension/          The extension itself: load it in Chrome, zip it for the Web Store
+  manifest.json
+  data/             What you edit: links, calendar, bell times
+  images/           Logos and icons (credits in images/ICONS.md)
+  html/             Popup (mainPage), editing page (options), Schedule page (clockPage)
+  js/               Code; reads data/ and keeps saved links in sync
+  css/              Styles
+announcements.json  Today's delays and snow days (read live from GitHub, not shipped)
+tools/              npm run check / icon / release
+DEVELOPING.md       This guide
 ```
 
 **Old images:** `npm run check` lists images no current link uses. Keep them for about a school year, because deleted links can still be on students' home screens. After that they're safe to delete.

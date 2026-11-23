@@ -5,12 +5,12 @@
 // Upload the zip in the Chrome Web Store developer dashboard.
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ROOT, rel, red, green } from './lib.mjs';
+import { rel, ext, red, green } from './lib.mjs';
 
 const check = spawnSync(process.execPath, [rel('tools/check.mjs')], { stdio: 'inherit' });
 if (check.status !== 0) { console.log(red('\nFix the problems above, then run the release again.')); process.exit(1); }
 
-const manifestPath = rel('manifest.json');
+const manifestPath = ext('manifest.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const [maj, min, pat] = manifest.version.split('.').map(Number);
 const arg = process.argv[2] || 'patch';
@@ -22,15 +22,15 @@ if (!/^\d+\.\d+\.\d+$/.test(version)) { console.log(red(`"${arg}" isn't a versio
 manifest.version = version;
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 
-// Only what the extension needs goes in the zip.
-const include = ['manifest.json', 'html', 'css', 'js', 'data', 'images'];
+// The zip is the extension/ folder's contents, with manifest.json at the top
+// level, which is what the Chrome Web Store expects.
 fs.mkdirSync(rel('dist'), { recursive: true });
 const zipName = `ehhs-extension-${version}.zip`;
 const zipPath = rel('dist', zipName);
 if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
 const zip = process.platform === 'win32'
-  ? spawnSync('tar', ['-a', '-c', '-f', zipPath, ...include], { cwd: ROOT, stdio: 'inherit' })
-  : spawnSync('zip', ['-qr', zipPath, ...include, '-x', '*.DS_Store', 'images/ICONS.md'], { cwd: ROOT, stdio: 'inherit' });
+  ? spawnSync('tar', ['-a', '-c', '-f', zipPath, '*'], { cwd: ext(), stdio: 'inherit', shell: true })
+  : spawnSync('zip', ['-qr', zipPath, '.', '-x', '*.DS_Store', 'images/ICONS.md'], { cwd: ext(), stdio: 'inherit' });
 if (zip.status !== 0) { console.log(red('Couldn\'t create the zip (is the "zip" command installed?).')); process.exit(1); }
 
 const kb = Math.round(fs.statSync(zipPath).size / 1024);
