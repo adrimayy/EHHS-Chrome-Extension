@@ -7,6 +7,7 @@ Everything you'll normally change is in the **`data/`** folder. Each file is a p
 | Links: add, remove, rename, re-categorize | `data/links.js` |
 | Which days the period timer runs | `data/calendar.js` |
 | Bell schedules (regular, homeroom, delays) | `data/bells.js` |
+| **Today's** delay, snow day or early dismissal | `announcements.json`. Edit it on GitHub; no release needed |
 
 You never need to touch `js/`, `html/` or `css/` for these, and there's no version number to bump inside the code. When students get the update, their copies sync themselves: new links appear in their App Library, deleted ones leave it, and renamed links and new logos update on their home screens (unless a student renamed a link themselves).
 
@@ -94,20 +95,45 @@ Tip: count the school days in each month and compare them to the PDF's monthly t
 
 The badge timer, the popup's timer and the Schedule page all read from this file.
 
-### Snow days, delays and half days
+### Post a delay, snow day or early dismissal (no release needed)
 
-Students pick these themselves under **Today's schedule**, on the Schedule page or the editing page: a delay, homeroom, early dismissal (with a time) or no school. A pick only lasts for that day.
+Students' extensions read **`announcements.json`** straight from GitHub, about every 15 minutes and whenever the popup opens. Post a change once and everyone's timer switches to the right bells. The popup also shows a red line like **"Today: 2-hour delay · Snow"**, or **"Tomorrow: …"** if it's posted the day before.
 
-For days known ahead, list them under `special` for that year in `data/calendar.js`, and every student gets them automatically:
+To post one:
 
-```js
-special: [
-  ['2027-01-26', 'homeroom'],
-  ['2027-06-24', 'early', '11:00'],
-],
-```
+1. Open the file on GitHub, logged in to an account that can edit the repository:
+   https://github.com/adrimayy/EHHS-Chrome-Extension/edit/main/announcements.json
+   The GitHub phone app works too.
+2. Add an entry to `days`:
+   ```json
+   "days": [
+     { "date": "2027-01-26", "schedule": "delay2", "message": "Snow" },
+     { "date": "2027-06-24", "schedule": "early", "dismissal": "11:00" }
+   ]
+   ```
+   - `schedule` is one of:
+     - `delay1` (1-hour delay)
+     - `delay2` (2-hour delay)
+     - `homeroom` (15-minute homeroom)
+     - `early` (early dismissal; also needs a `dismissal` time)
+     - `closed` (no school)
+     - `regular` (to undo something)
+   - `message` is optional.
+3. Commit. Everyone has it within about 15 to 20 minutes.
 
-EHHS doesn't publish a half-day bell schedule, so early dismissal follows the regular bells and stops at the dismissal time. If the school ever posts one, add it to `data/bells.js` as its own schedule.
+**Planning ahead:** post future days any time. Past days are ignored, so the list never needs cleaning.
+
+**Mistakes:** the Actions tab shows a green check if the file is valid, or a red ✗ explaining what's wrong. If the file breaks, students simply keep the last good version until it's fixed.
+
+To give a teacher access: on GitHub, open the repository's **Settings → Collaborators → Add people**.
+
+**Students can still pick a schedule themselves** under **Today's schedule** (Schedule page or editing page), for example if they hear about a delay before it's posted. Whichever was set most recently wins, and a student's pick lasts only that day.
+
+**Days known when the calendar is written** (for example a homeroom day) can also go under `special` in `data/calendar.js`. Those only reach students with the next release, so `announcements.json` is usually easier.
+
+EHHS doesn't publish a half-day bell schedule, so `early` follows the regular bells and stops at the dismissal time. If the school posts one, add it to `data/bells.js` as its own schedule.
+
+**If GitHub ever limits requests:** the whole school shares one internet connection, and GitHub limits how often one connection can download raw files. Each copy checks at most every 5 minutes, which should be well within the limit. If it ever becomes a problem, turn on GitHub Pages for the repository (**Settings → Pages → Deploy from branch: main**). Then set `ANNOUNCEMENTS_URL` in `data/calendar.js` to `https://adrimayy.github.io/EHHS-Chrome-Extension/announcements.json` and release.
 
 ---
 

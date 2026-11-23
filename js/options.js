@@ -46,7 +46,7 @@
     const upcoming = SCHOOL_YEARS.find((y) => isoDay(now) <= y.lastDay);
     $('calYear').textContent = info.year ? info.year.name : (upcoming ? upcoming.name + ' (starts ' + fmtDay(new Date(upcoming.firstDay + 'T12:00')) + ')' : 'none loaded');
     if (info.schoolDay) {
-      const plan = todaysPlan(now, pickedToday);
+      const plan = todaysPlan(now, pickedToday, announcedToday);
       $('calToday').textContent = plan.id === 'regular' ? 'School day' : plan.name;
     } else {
       $('calToday').textContent = info.reason;
@@ -59,13 +59,16 @@
     warn.textContent = `The newest calendar loaded ends ${fmtDay(new Date(lastYear.lastDay + 'T12:00'))}. Add next year's dates to data/calendar.js when the district posts them.`;
   }
   let pickedToday = null;
+  let announcedToday = null;
   mountSchedulePicker($('schedulePicker'), async () => {
     pickedToday = await getPickedSchedule();
+    announcedToday = await getAnnouncements();
     showCalendar();
     updateBadgeNow();
   });
   getBadgeSettings().then((s) => {
     pickedToday = s.todaySchedule;
+    announcedToday = s.announcements;
     $('badgeEnabled').checked = s.badgeEnabled;
     showCalendar();
     updateBadgeNow();

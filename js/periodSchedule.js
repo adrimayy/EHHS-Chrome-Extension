@@ -21,7 +21,6 @@ function sizeCanvas() {
   canvas.style.height = HEIGHT + 'px';
 }
 
-let picked = null;
 let plan = todaysPlan(new Date(), null);
 const toClock = (sec) => formatClock(Math.floor(sec / 3600) + ':' + String(Math.floor(sec / 60) % 60).padStart(2, '0'));
 const rowY = (i) => ROW * i + 44;
@@ -108,9 +107,8 @@ function loop() {
 }
 
 document.getElementById('officialSchedules').href = BELL_SCHEDULES_SOURCE;
-mountSchedulePicker(document.getElementById('schedulePicker'), (p) => { plan = p; });
-getPickedSchedule().then((p) => {
-  picked = p;
-  plan = todaysPlan(new Date(), picked);
+mountSchedulePicker(document.getElementById('schedulePicker'), (p) => { plan = p; }).render().then((p) => {
+  plan = p;
   loop();
 });
+syncAnnouncements();
