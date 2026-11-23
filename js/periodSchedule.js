@@ -101,13 +101,19 @@ function highlightCurrentPeriod(t) {
   });
 }
 
+// Redraw once a second, right as the second changes (the clock shows seconds),
+// and not at all while the page is hidden.
+let tick = null;
 function loop() {
+  clearTimeout(tick);
+  if (document.hidden) return;
   draw();
-  requestAnimationFrame(loop);
+  tick = setTimeout(loop, 1000 - (Date.now() % 1000) + 5);
 }
+document.addEventListener('visibilitychange', loop);
 
 document.getElementById('officialSchedules').href = BELL_SCHEDULES_SOURCE;
-mountSchedulePicker(document.getElementById('schedulePicker'), (p) => { plan = p; }).render().then((p) => {
+mountSchedulePicker(document.getElementById('schedulePicker'), (p) => { plan = p; loop(); }).render().then((p) => {
   plan = p;
   loop();
 });
