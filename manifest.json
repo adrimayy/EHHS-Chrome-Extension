@@ -1,27 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "EHHS Chrome Extension v0.6.0",
+  "name": "EHHS Chrome Extension",
   "description": "Developed as a part of the EHHS Coding and Computer Science curriculum. Developers: Adriano Rangel & Urban Reininger",
   "version": "0.6.0",
   "options_page": "/html/options.html",
   "permissions": [
     "storage",
-    "alarms",
-    "unlimitedStorage"
+    "alarms"
   ],
   "action": {
     "default_popup": "html/mainPage.html",
     "default_icon": {
       "16": "images/darkSimpleBonac16.png",
       "32": "images/darkSimpleBonac32.png",
-      "64": "images/darkSimpleBonac64.png",
+      "48": "images/darkSimpleBonac48.png",
       "128": "images/darkSimpleBonac128.png"
     }
   },
   "icons": {
     "16": "images/darkSimpleBonac16.png",
     "32": "images/darkSimpleBonac32.png",
-    "64": "images/darkSimpleBonac64.png",
+    "48": "images/darkSimpleBonac48.png",
     "128": "images/darkSimpleBonac128.png"
   },
   "background": {

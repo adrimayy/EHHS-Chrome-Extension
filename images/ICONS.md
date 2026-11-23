@@ -18,3 +18,4 @@ university/SUNY) use [Material Symbols](https://github.com/google/material-desig
 ## Added in links v7 (school + local support)
 - Real logos (site icons via Google's favicon service): ola, fsl, retreat, response, foodpantry, lunch (FD MealPlanner), finalforms, dmv (NYS).
 - Material Symbols Rounded (Apache 2.0) glyphs: handbook (assignment), communityService (volunteer_activism), healthOffice (medical_services), biliteracy (workspace_premium), hopeline (phone_in_talk).
+- Links v8 glyphs (Material Symbols Rounded): courseChange (swap_horiz), transcript (description), scholarships (savings), seniorForms (assignment_ind), dreamAct (handshake).
